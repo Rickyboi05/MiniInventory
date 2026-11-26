@@ -42,28 +42,43 @@ app.use(
 // FIREBASE CONFIGURATION
 // =========================================
 
-const credentialsPath = path.resolve(
-  __dirname,
-  process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
-    "./serviceAccountKey.json"
-);
+let serviceAccount;
 
-if (!fs.existsSync(credentialsPath)) {
-  console.error(
-    "Firebase service account file not found:"
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+
+  // Render / Hosted environment
+  serviceAccount = JSON.parse(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON
   );
 
-  console.error(credentialsPath);
+} else {
 
-  process.exit(1);
+  // Local development
+  const credentialsPath = path.resolve(
+    __dirname,
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
+      "./serviceAccountKey.json"
+  );
+
+  if (!fs.existsSync(credentialsPath)) {
+
+    console.error(
+      "Firebase service account file not found:"
+    );
+
+    console.error(credentialsPath);
+
+    process.exit(1);
+  }
+
+  serviceAccount = JSON.parse(
+    fs.readFileSync(
+      credentialsPath,
+      "utf8"
+    )
+  );
+
 }
-
-const serviceAccount = JSON.parse(
-  fs.readFileSync(
-    credentialsPath,
-    "utf8"
-  )
-);
 
 initializeApp({
   credential: cert(serviceAccount),
@@ -77,8 +92,6 @@ const productsCollection =
 
 const transactionsCollection =
   db.collection("transactions");
-
-
 // =========================================
 // HEALTH CHECK
 // =========================================
