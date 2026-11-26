@@ -1,0 +1,1814 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>MiniInventory</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+</head>
+
+
+<body>
+
+  <div class="app-shell">
+
+
+    <!-- ========================================= -->
+    <!-- SIDEBAR -->
+    <!-- ========================================= -->
+
+    <aside class="sidebar">
+
+      <div class="brand">
+        <span class="brand-icon">📈</span>
+        <span>Mini Inventory</span>
+      </div>
+
+
+      <nav id="nav">
+
+        <button
+          type="button"
+          class="nav-item active"
+          data-page="dashboard"
+        >
+          🏠︎
+          <span>Dashboard</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          data-page="products"
+        >
+          📦
+          <span>Products</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          data-page="categories"
+        >
+          ▦
+          <span>Categories</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          data-page="transactions"
+        >
+          🔁
+          <span>Transactions</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          data-page="reports"
+        >
+          📑
+          <span>Reports</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          data-page="settings"
+        >
+          ⚙️
+          <span>Settings</span>
+        </button>
+
+      </nav>
+
+
+      <!-- SIDEBAR USER -->
+
+      <div class="sidebar-user">
+
+        <div
+          class="avatar"
+          id="sidebarAvatar"
+        >
+          RB
+        </div>
+
+        <div>
+
+         <b id="sidebarUserName">
+  User
+</b>
+
+          <small id="sidebarUserRole">
+            Admin
+          </small>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+
+    <!-- ========================================= -->
+    <!-- MAIN -->
+    <!-- ========================================= -->
+
+    <main class="main">
+
+
+      <!-- ========================================= -->
+      <!-- TOPBAR -->
+      <!-- ========================================= -->
+
+      <header class="topbar">
+
+        <div class="search-wrap">
+
+          ⌕
+
+          <input
+            id="globalSearch"
+            type="search"
+            placeholder="Search products or category..."
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <div class="top-actions">
+
+          <button
+            type="button"
+            title="Notifications"
+            aria-label="Notifications"
+          >
+            ♧
+          </button>
+
+
+          <button
+            type="button"
+            title="Theme"
+            aria-label="Theme"
+          >
+            ☼
+          </button>
+
+
+          <div
+            class="avatar small"
+            id="topbarAvatar"
+          >
+            RB
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <!-- ========================================= -->
+      <!-- DASHBOARD -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-dashboard"
+        class="page active-page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1 id="dashboardGreeting"></h1>
+            <p>
+              Here's what's happening with your inventory today.
+            </p>
+
+          </div>
+
+
+          <div class="date-chip">
+
+  <span id="currentDate"></span>
+
+  <span id="currentTime"></span>
+
+</div>
+
+        </div>
+
+
+        <!-- DASHBOARD STAT CARDS -->
+
+        <div class="cards">
+
+
+          <div class="stat-card">
+
+            <span>
+              Total Products
+            </span>
+
+            <strong id="totalProducts">
+              0
+            </strong>
+
+            <small class="up">
+              Current inventory items
+            </small>
+
+          </div>
+
+
+          <div class="stat-card mint">
+
+            <span>
+              Low Stock
+            </span>
+
+            <strong id="lowStock">
+              0
+            </strong>
+
+            <small class="up">
+              Need attention
+            </small>
+
+          </div>
+
+
+          <div class="stat-card pink">
+
+            <span>
+              Out of Stock
+            </span>
+
+            <strong id="outStock">
+              0
+            </strong>
+
+            <small class="down">
+              Currently unavailable
+            </small>
+
+          </div>
+
+
+          <div class="stat-card purple">
+
+            <span>
+              Inventory Value
+            </span>
+
+            <strong id="inventoryValue">
+              ₱0
+            </strong>
+
+            <small class="up">
+              Current stock value
+            </small>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- DASHBOARD TWO COLUMN -->
+
+        <div class="grid-two">
+
+
+          <!-- STOCK OVERVIEW -->
+
+          <div class="panel">
+
+            <div class="panel-head">
+
+              <h2>
+                Stock Overview
+              </h2>
+
+            </div>
+
+
+            <div class="overview">
+
+
+              <div
+                class="donut"
+                id="donut"
+              >
+
+                <div>
+
+                  <b id="donutTotal">
+                    0
+                  </b>
+
+                  <small>
+                    Total Items
+                  </small>
+
+                </div>
+
+              </div>
+
+
+              <div class="legend">
+
+
+                <div>
+
+                  <i class="dot green"></i>
+
+                  In Stock
+
+                  <b id="inStockCount">
+                    0
+                  </b>
+
+                  <span id="inStockPct">
+                    0%
+                  </span>
+
+                </div>
+
+
+                <div>
+
+                  <i class="dot yellow"></i>
+
+                  Low Stock
+
+                  <b id="lowStockCount">
+                    0
+                  </b>
+
+                  <span id="lowStockPct">
+                    0%
+                  </span>
+
+                </div>
+
+
+                <div>
+
+                  <i class="dot red"></i>
+
+                  Out of Stock
+
+                  <b id="outStockCount">
+                    0
+                  </b>
+
+                  <span id="outStockPct">
+                    0%
+                  </span>
+
+                </div>
+
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- RECENT TRANSACTIONS -->
+
+          <div class="panel">
+
+            <div class="panel-head">
+
+              <h2>
+                Recent Transactions
+              </h2>
+
+              <a
+                href="#"
+                data-page-link="transactions"
+              >
+                View All
+              </a>
+
+            </div>
+
+
+            <div
+              class="transactions-mini"
+              id="dashboardTransactions"
+            >
+
+              <div>
+                Loading recent transactions...
+              </div>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </section>
+
+
+      <!-- ========================================= -->
+      <!-- PRODUCTS -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-products"
+        class="page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1>
+              Products
+            </h1>
+
+            <p>
+              Manage your inventory items, stock levels and details.
+            </p>
+
+          </div>
+
+
+          <button
+            class="primary"
+            id="addProductBtn"
+            type="button"
+          >
+            ＋ Add Product
+          </button>
+
+        </div>
+
+
+        <!-- PRODUCT FILTERS -->
+
+        <div class="filters">
+
+          <select id="productCategoryFilter">
+
+            <option value="All Categories">
+              All Categories
+            </option>
+
+          </select>
+
+
+          <select id="productStatusFilter">
+
+            <option value="All Status">
+              All Status
+            </option>
+
+            <option value="In Stock">
+              In Stock
+            </option>
+
+            <option value="Low Stock">
+              Low Stock
+            </option>
+
+            <option value="Out of Stock">
+              Out of Stock
+            </option>
+
+          </select>
+
+
+          <input
+            id="productSearch"
+            type="search"
+            placeholder="Search by name or category..."
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <!-- PRODUCT TABLE -->
+
+        <div class="panel table-panel">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+
+                <th>
+                  Product Name
+                </th>
+
+                <th>
+                  Category
+                </th>
+
+                <th>
+                  Price
+                </th>
+
+                <th>
+                  Stock
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Actions
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="productsBody">
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <!-- ========================================= -->
+      <!-- ADD PRODUCT -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-add"
+        class="page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1>
+              Add Product
+            </h1>
+
+            <p>
+              Fill in the details below to add a new product to your inventory.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel form-panel">
+
+          <form id="productForm">
+
+            <div class="form-grid">
+
+
+              <label>
+
+                Product Name
+
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  placeholder="Enter product name"
+                  autocomplete="off"
+                >
+
+              </label>
+
+
+              <label>
+
+                Category
+
+                <input
+                  name="category"
+                  type="text"
+                  required
+                  placeholder="Enter category"
+                  autocomplete="off"
+                >
+
+              </label>
+
+
+              <label>
+
+                Price
+
+                <input
+                  name="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  placeholder="₱0.00"
+                >
+
+              </label>
+
+
+              <label>
+
+                Stock
+
+                <input
+                  name="quantity"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  placeholder="0"
+                >
+
+              </label>
+
+
+              <label>
+
+                Minimum Stock
+
+                <input
+                  name="minimum"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  placeholder="0"
+                >
+
+              </label>
+
+
+            </div>
+
+
+            <div class="form-actions">
+
+              <button
+                type="button"
+                class="secondary"
+                data-page-link="products"
+              >
+                Cancel
+              </button>
+
+
+              <button
+                class="primary"
+                type="submit"
+              >
+                Save Product
+              </button>
+
+            </div>
+
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <!-- ========================================= -->
+      <!-- TRANSACTIONS -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-transactions"
+        class="page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1>
+              Stock Transactions
+            </h1>
+
+            <p>
+              View all stock movements and history.
+            </p>
+
+          </div>
+
+
+          <button
+            class="secondary"
+            id="exportTransactionsBtn"
+            type="button"
+          >
+            ⇩ Export
+          </button>
+
+        </div>
+
+
+        <!-- TRANSACTION FILTERS -->
+
+        <div class="filters">
+
+          <select id="transactionTypeFilter">
+
+            <option value="All Types">
+              All Types
+            </option>
+
+            <option value="Stock In">
+              Stock In
+            </option>
+
+            <option value="Stock Out">
+              Stock Out
+            </option>
+
+          </select>
+
+
+          <input
+            type="date"
+            id="transactionStartDate"
+          >
+
+
+          <input
+            type="date"
+            id="transactionEndDate"
+          >
+
+        </div>
+
+
+        <div class="panel table-panel">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Date & Time
+                </th>
+
+                <th>
+                  Type
+                </th>
+
+                <th>
+                  Product
+                </th>
+
+                <th>
+                  Quantity
+                </th>
+
+                <th>
+                  Previous Stock
+                </th>
+
+                <th>
+                  New Stock
+                </th>
+
+                <th>
+                  Remarks
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="transactionsBody">
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <!-- ========================================= -->
+      <!-- CATEGORIES -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-categories"
+        class="page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1>
+              Categories
+            </h1>
+
+            <p>
+              Organize your inventory by category.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="cards category-cards"
+          id="categoriesContainer"
+        >
+
+          <div class="panel empty-state">
+            Loading categories...
+          </div>
+
+        </div>
+
+      </section>
+
+
+      
+
+      <!-- ========================================= -->
+      <!-- REPORTS -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-reports"
+        class="page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1>
+              Reports
+            </h1>
+
+            <p>
+              View analytics and generate reports for your inventory.
+            </p>
+
+          </div>
+
+
+          <button
+            class="primary"
+            id="exportReportBtn"
+            type="button"
+          >
+            ⇩ Export Report
+          </button>
+
+        </div>
+
+
+        <!-- REPORT SUMMARY -->
+
+        <div class="cards">
+
+
+          <div class="stat-card">
+
+            <span>
+              Total Products
+            </span>
+
+            <strong id="reportProducts">
+              0
+            </strong>
+
+            <small>
+              Current inventory items
+            </small>
+
+          </div>
+
+
+          <div class="stat-card mint">
+
+            <span>
+              Stock In
+            </span>
+
+            <strong id="reportStockIn">
+              0
+            </strong>
+
+            <small>
+              Total units added
+            </small>
+
+          </div>
+
+
+          <div class="stat-card pink">
+
+            <span>
+              Stock Out
+            </span>
+
+            <strong id="reportStockOut">
+              0
+            </strong>
+
+            <small>
+              Total units removed
+            </small>
+
+          </div>
+
+
+          <div class="stat-card purple">
+
+            <span>
+              Inventory Value
+            </span>
+
+            <strong id="reportInventory">
+              ₱0
+            </strong>
+
+            <small>
+              Current stock value
+            </small>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- REPORT CHARTS -->
+
+        <div class="grid-two">
+
+
+          <!-- STOCK MOVEMENT -->
+
+          <div class="panel chart">
+
+            <h2>
+              Stock Movement
+            </h2>
+
+            <div
+              class="bars"
+              id="stockMovementChart"
+            >
+
+              <div>
+                Loading...
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- TOP CATEGORIES -->
+
+          <div class="panel chart">
+
+            <h2>
+              Top Categories
+            </h2>
+
+            <div
+              class="category-ring"
+              id="topCategoriesChart"
+            >
+
+              <span>
+                0
+              </span>
+
+              <small>
+                Total Products
+              </small>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- CATEGORY SUMMARY -->
+
+        <div class="panel report-category-panel">
+
+          <div class="panel-head">
+
+            <h2>
+              Category Summary
+            </h2>
+
+          </div>
+
+
+          <div
+            id="reportCategories"
+            class="report-category-list"
+          >
+
+            <div>
+              Loading category summary...
+            </div>
+
+          </div>
+
+        </div>
+
+
+      </section>
+
+
+      <!-- ========================================= -->
+      <!-- SETTINGS -->
+      <!-- ========================================= -->
+
+      <section
+        id="page-settings"
+        class="page"
+      >
+
+        <div class="page-heading">
+
+          <div>
+
+            <h1>
+              Settings
+            </h1>
+
+            <p>
+              Manage your account and system preferences.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel settings-card">
+
+
+          <!-- SETTINGS MENU -->
+
+          <div class="settings-menu">
+
+            <button
+              type="button"
+              class="settings-tab active"
+              data-settings-tab="profile"
+            >
+              ♙ Profile
+            </button>
+
+
+            <button
+              type="button"
+              class="settings-tab"
+              data-settings-tab="users"
+            >
+              ♙ Users
+            </button>
+
+
+            <button
+              type="button"
+              class="settings-tab"
+              data-settings-tab="system"
+            >
+              ⚙ System
+            </button>
+
+
+            <button
+              type="button"
+              class="settings-tab"
+              data-settings-tab="backup"
+            >
+              ▣ Backup
+            </button>
+
+          </div>
+
+
+          <!-- ========================================= -->
+          <!-- PROFILE -->
+          <!-- ========================================= -->
+
+          <div
+            class="settings-content settings-section active"
+            id="settings-profile"
+          >
+
+            <h2>
+              Account Information
+            </h2>
+
+            <p>
+              Manage your Stockly account information.
+            </p>
+
+
+            <div class="profile-row">
+
+              <div
+                class="avatar big"
+                id="settingsAvatar"
+              >
+                RB
+              </div>
+
+
+              <div class="profile-info">
+
+               <b id="settingsProfileName">
+  User
+</b>
+
+                <small id="settingsProfileRole">
+                  Administrator
+                </small>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="secondary"
+                id="editProfileBtn"
+              >
+                Edit Profile
+              </button>
+
+            </div>
+
+
+            <hr>
+
+
+            <h3>
+              Profile Details
+            </h3>
+
+
+            <div class="form-grid">
+
+
+              <label>
+
+                Full Name
+
+                <input
+                  type="text"
+                  id="settingsFullName"
+                  value="User"
+                  placeholder="Enter your full name"
+                  autocomplete="name"
+                >
+
+              </label>
+
+
+              <label>
+
+                Role
+
+                <input
+                  type="text"
+                  id="settingsRole"
+                  value="Administrator"
+                  placeholder="Enter your role"
+                >
+
+              </label>
+
+
+            </div>
+
+
+            <div class="form-actions">
+
+              <button
+                type="button"
+                class="secondary"
+                id="cancelProfileBtn"
+              >
+                Cancel
+              </button>
+
+
+              <button
+                type="button"
+                class="primary"
+                id="saveProfileBtn"
+              >
+                Save Changes
+              </button>
+
+            </div>
+
+
+            <hr>
+
+
+            <h3>
+              Security
+            </h3>
+
+
+            <div class="security-item">
+
+              <div>
+
+                <b>
+                  🔒 Change Password
+                </b>
+
+                <small>
+                  Update your password regularly to keep your account secure.
+                </small>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="secondary"
+                id="changePasswordBtn"
+              >
+                Change Password
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- ========================================= -->
+          <!-- USERS -->
+          <!-- ========================================= -->
+
+          <div
+            class="settings-content settings-section"
+            id="settings-users"
+          >
+
+            <h2>
+              Users
+            </h2>
+
+            <p>
+              Manage users who can access the inventory system.
+            </p>
+
+
+            <div class="settings-placeholder">
+
+              <div class="placeholder-icon">
+                ♙
+              </div>
+
+              <h3>
+                User Management
+              </h3>
+
+              <p>
+                User management will be available here.
+              </p>
+
+
+              <button
+                type="button"
+                class="primary"
+                id="addUserBtn"
+              >
+                ＋ Add User
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- ========================================= -->
+          <!-- SYSTEM -->
+          <!-- ========================================= -->
+
+          <div
+            class="settings-content settings-section"
+            id="settings-system"
+          >
+
+            <h2>
+              System Preferences
+            </h2>
+
+            <p>
+              Customize how Stockly works.
+            </p>
+
+
+            <div class="settings-options">
+
+
+              <div class="setting-option">
+
+                <div>
+
+                  <b>
+                    Currency
+                  </b>
+
+                  <small>
+                    Currency used for product prices and inventory value.
+                  </small>
+
+                </div>
+
+
+                <select id="currencySetting">
+
+                  <option value="PHP">
+                    Philippine Peso (₱)
+                  </option>
+
+                  <option value="USD">
+                    US Dollar ($)
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="setting-option">
+
+                <div>
+
+                  <b>
+                    Low Stock Alerts
+                  </b>
+
+                  <small>
+                    Show warnings when products reach their minimum stock level.
+                  </small>
+
+                </div>
+
+
+                <label class="switch">
+
+                  <input
+                    type="checkbox"
+                    id="lowStockAlertSetting"
+                    checked
+                  >
+
+                  <span class="slider"></span>
+
+                </label>
+
+              </div>
+
+
+              <div class="setting-option">
+
+                <div>
+
+                  <b>
+                    Confirmation Before Delete
+                  </b>
+
+                  <small>
+                    Ask for confirmation before deleting products.
+                  </small>
+
+                </div>
+
+
+                <label class="switch">
+
+                  <input
+                    type="checkbox"
+                    id="deleteConfirmationSetting"
+                    checked
+                  >
+
+                  <span class="slider"></span>
+
+                </label>
+
+              </div>
+
+
+            </div>
+
+
+            <div class="form-actions">
+
+              <button
+                type="button"
+                class="primary"
+                id="saveSystemSettingsBtn"
+              >
+                Save Settings
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- ========================================= -->
+          <!-- BACKUP -->
+          <!-- ========================================= -->
+
+          <div
+            class="settings-content settings-section"
+            id="settings-backup"
+          >
+
+            <h2>
+              Backup & Data
+            </h2>
+
+            <p>
+              Manage your inventory data and create backups.
+            </p>
+
+
+            <div class="settings-placeholder">
+
+              <div class="placeholder-icon">
+                ▣
+              </div>
+
+              <h3>
+                Data Backup
+              </h3>
+
+              <p>
+                Create a backup of your inventory data.
+              </p>
+
+
+              <button
+                type="button"
+                class="primary"
+                id="backupDataBtn"
+              >
+                ⇩ Backup Data
+              </button>
+
+            </div>
+
+
+            <div class="backup-warning">
+
+              <b>
+                ⚠ Important
+              </b>
+
+              <p>
+                Keep a backup of your inventory data regularly to avoid losing important records.
+              </p>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </section>
+
+
+    </main>
+
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- AI LAUNCHER -->
+  <!-- ========================================= -->
+
+  <div
+    class="ai-launcher"
+    id="aiLauncher"
+    title="Open Inventory Assistant"
+  >
+    🤖
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- AI PANEL -->
+  <!-- ========================================= -->
+
+  <div
+    class="ai-panel"
+    id="aiPanel"
+  >
+
+    <div class="ai-header">
+
+      <div>
+
+        <b>
+          MiniInventory Assistant
+        </b>
+
+        <small>
+          Inventory AI Assistant
+        </small>
+
+      </div>
+
+
+      <button
+        type="button"
+        id="aiClose"
+        aria-label="Close AI Assistant"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      class="ai-messages"
+      id="aiMessages"
+    >
+
+      <div class="bubble assistant">
+
+        Hello! I'm your MiniInventory Assistant.
+        Ask me about your products, stock, prices, or low-stock items.
+
+      </div>
+
+    </div>
+
+
+    <form
+      class="ai-form"
+      id="aiForm"
+    >
+
+      <input
+        id="aiInput"
+        type="text"
+        placeholder="Ask about your inventory..."
+        autocomplete="off"
+        required
+      >
+
+      <button
+        type="submit"
+        aria-label="Send message"
+      >
+        ➤
+      </button>
+
+    </form>
+
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- EDIT PRODUCT MODAL -->
+  <!-- ========================================= -->
+
+  <div
+    class="modal-overlay"
+    id="editProductModal"
+  >
+
+    <div class="modal">
+
+
+      <div class="modal-header">
+
+        <div>
+
+          <h2>
+            Edit Product
+          </h2>
+
+          <p>
+            Update the details of this product.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          id="closeEditProduct"
+          aria-label="Close Edit Product"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form id="editProductForm">
+
+
+        <div class="form-grid">
+
+
+          <label>
+
+            Product Name
+
+            <input
+              id="editProductName"
+              name="name"
+              type="text"
+              required
+              placeholder="Enter product name"
+              autocomplete="off"
+            >
+
+          </label>
+
+
+          <label>
+
+            Category
+
+            <input
+              id="editProductCategory"
+              name="category"
+              type="text"
+              required
+              placeholder="Enter category"
+              autocomplete="off"
+            >
+
+          </label>
+
+
+          <label>
+
+            Price
+
+            <input
+              id="editProductPrice"
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+              placeholder="₱0.00"
+            >
+
+          </label>
+
+
+          <label>
+
+            Stock
+
+            <input
+              id="editProductQuantity"
+              name="quantity"
+              type="number"
+              min="0"
+              step="1"
+              required
+              placeholder="0"
+            >
+
+          </label>
+
+
+          <label>
+
+            Minimum Stock
+
+            <input
+              id="editProductMinimum"
+              name="minimum"
+              type="number"
+              min="0"
+              step="1"
+              required
+              placeholder="0"
+            >
+
+          </label>
+
+
+        </div>
+
+
+        <div class="form-actions">
+
+
+          <button
+            type="button"
+            class="secondary"
+            id="cancelEditProduct"
+          >
+            Cancel
+          </button>
+
+
+          <button
+            type="submit"
+            class="primary"
+          >
+            Save Changes
+          </button>
+
+
+        </div>
+
+
+      </form>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- JAVASCRIPT -->
+  <!-- ========================================= -->
+
+  <script src="app.js"></script>
+
+</body>
+
+</html>
+```
