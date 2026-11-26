@@ -1,4 +1,4 @@
-const API = "http://localhost:3000";
+const API = "https://miniinventory.onrender.com";
 
 let products = [];
 let editingProductId = null;
