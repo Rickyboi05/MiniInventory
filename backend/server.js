@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const { GoogleGenAI } = require("@google/genai");
 
 const { initializeApp, cert } = require("firebase-admin/app");
@@ -92,6 +94,11 @@ const productsCollection =
 
 const transactionsCollection =
   db.collection("transactions");
+const usersCollection =
+  db.collection("users");
+
+const sessionsCollection =
+  db.collection("sessions");
 // =========================================
 // HEALTH CHECK
 // =========================================
@@ -104,7 +111,275 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// =========================================
+// AUTHENTICATION
+// =========================================
 
+// REGISTER
+app.post(
+  "/api/auth/register",
+  async (req, res) => {
+    try {
+      const {
+        name,
+        email,
+        password
+      } = req.body;
+
+      // Basic validation
+      if (
+        typeof name !== "string" ||
+        !name.trim()
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Name is required."
+        });
+      }
+
+      if (
+        typeof email !== "string" ||
+        !email.trim()
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required."
+        });
+      }
+
+      if (
+        typeof password !== "string" ||
+        password.length < 6
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Password must be at least 6 characters."
+        });
+      }
+
+      const cleanName =
+        name.trim();
+
+      const cleanEmail =
+        email.trim().toLowerCase();
+
+
+      // Check if email already exists
+      const existingSnapshot =
+        await usersCollection
+          .where("email", "==", cleanEmail)
+          .limit(1)
+          .get();
+
+      if (!existingSnapshot.empty) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "An account with this email already exists."
+        });
+      }
+
+
+      // Hash password
+      const passwordHash =
+        await bcrypt.hash(
+          password,
+          12
+        );
+
+
+      // Create user
+      const userData = {
+        name: cleanName,
+
+        email: cleanEmail,
+
+        passwordHash,
+
+        role: "Inventory Manager",
+
+        createdAt:
+          FieldValue.serverTimestamp(),
+
+        updatedAt:
+          FieldValue.serverTimestamp()
+      };
+
+
+      const userRef =
+        await usersCollection.add(
+          userData
+        );
+
+
+      res.status(201).json({
+        success: true,
+
+        message:
+          "Account created successfully.",
+
+        user: {
+          id: userRef.id,
+          name: cleanName,
+          email: cleanEmail,
+          role: "Inventory Manager"
+        }
+      });
+
+    } catch (error) {
+
+      console.error(
+        "REGISTER error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Unable to create account."
+      });
+    }
+  }
+);
+
+
+// LOGIN
+app.post(
+  "/api/auth/login",
+  async (req, res) => {
+    try {
+      const {
+        email,
+        password
+      } = req.body;
+
+
+      if (
+        typeof email !== "string" ||
+        !email.trim()
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required."
+        });
+      }
+
+
+      if (
+        typeof password !== "string" ||
+        !password
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Password is required."
+        });
+      }
+
+
+      const cleanEmail =
+        email.trim().toLowerCase();
+
+
+      // Find user
+      const snapshot =
+        await usersCollection
+          .where(
+            "email",
+            "==",
+            cleanEmail
+          )
+          .limit(1)
+          .get();
+
+
+      if (snapshot.empty) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Invalid email or password."
+        });
+      }
+
+
+      const userDoc =
+        snapshot.docs[0];
+
+      const user =
+        userDoc.data();
+
+
+      // Check password
+      const passwordMatch =
+        await bcrypt.compare(
+          password,
+          user.passwordHash
+        );
+
+
+      if (!passwordMatch) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Invalid email or password."
+        });
+      }
+
+
+      // Create login token
+      const token =
+        crypto.randomBytes(32).toString("hex");
+
+
+      // Save session
+      await sessionsCollection
+        .doc(token)
+        .set({
+          userId: userDoc.id,
+
+          createdAt:
+            FieldValue.serverTimestamp()
+        });
+
+
+      res.json({
+        success: true,
+
+        message:
+          "Login successful.",
+
+        token,
+
+        user: {
+          id: userDoc.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          role:
+            user.role ||
+            "Inventory Manager"
+        }
+      });
+
+    } catch (error) {
+
+      console.error(
+        "LOGIN error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Unable to login."
+      });
+    }
+  }
+);
 // =========================================
 // PRODUCT VALIDATION
 // =========================================
