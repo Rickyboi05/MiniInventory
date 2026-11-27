@@ -2580,7 +2580,6 @@ function setupCategoryFilter() {
 // =========================================================
 // CATEGORIES
 // =========================================================
-
 function renderCategories() {
 
   const container =
@@ -2588,48 +2587,304 @@ function renderCategories() {
       "categoriesContainer"
     );
 
-
   if (!container) {
     return;
   }
 
-
   if (!products.length) {
-
     container.innerHTML = `
-
       <div class="panel empty-state">
-
         No categories available yet.
-
         <br>
-
         Add a product to create a category.
-
       </div>
-
     `;
-
     return;
-
   }
 
+  // =========================================================
+  // GROUP PRODUCTS BY CATEGORY
+  // =========================================================
 
   const categoryMap = {};
 
+  products.forEach(product => {
+
+    const rawCategory =
+      String(
+        product.category || ""
+      ).trim();
+
+    const category =
+      rawCategory || "Uncategorized";
+
+    const categoryKey =
+      category.toLowerCase();
+
+    if (!categoryMap[categoryKey]) {
+
+      categoryMap[categoryKey] = {
+        name: category,
+        products: [],
+        units: 0,
+        value: 0
+      };
+
+    }
+
+    categoryMap[categoryKey].products.push(product);
+
+    categoryMap[categoryKey].units +=
+      Number(product.quantity || 0);
+
+    categoryMap[categoryKey].value +=
+      Number(product.price || 0) *
+      Number(product.quantity || 0);
+
+  });
+
+
+  // =========================================================
+  // SORT CATEGORIES
+  // =========================================================
+
+  const categories =
+    Object.values(categoryMap)
+      .sort(
+        (a, b) =>
+          b.units - a.units
+      );
+
+
+  // =========================================================
+  // CATEGORY CARDS
+  // =========================================================
+
+  container.innerHTML =
+    categories
+      .map((category, index) => {
+
+        return `
+          <div
+            class="panel category-card"
+            onclick="toggleCategoryProducts(${index})"
+            style="cursor:pointer;"
+          >
+
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:12px;
+              "
+            >
+
+              <div>
+
+                <b>
+                  ${escapeHtml(
+                    category.name
+                  )}
+                </b>
+
+                <strong
+                  style="
+                    display:block;
+                    margin-top:6px;
+                  "
+                >
+                  ${category.products.length}
+                  ${
+                    category.products.length === 1
+                      ? "item"
+                      : "items"
+                  }
+                </strong>
+
+              </div>
+
+              <span
+                style="
+                  font-size:18px;
+                  opacity:.65;
+                "
+              >
+                <i
+                  class="fa-solid fa-chevron-down"
+                ></i>
+              </span>
+
+            </div>
+
+            <small
+              style="
+                display:block;
+                margin-top:10px;
+              "
+            >
+              ${category.units}
+              pcs in stock
+            </small>
+
+            <small
+              style="
+                display:block;
+                margin-top:4px;
+              "
+            >
+              Value:
+              ${formatCurrency(
+                category.value
+              )}
+            </small>
+
+
+            <!-- PRODUCTS -->
+            <div
+              id="categoryProducts-${index}"
+              class="category-products"
+              style="
+                display:none;
+                margin-top:16px;
+                padding-top:14px;
+                border-top:1px solid rgba(0,0,0,.08);
+              "
+            >
+
+              ${category.products
+                .map(product => {
+
+                  const quantity =
+                    Number(
+                      product.quantity || 0
+                    );
+
+                  return `
+                    <div
+                      style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:12px;
+                        padding:10px 0;
+                        border-bottom:1px solid rgba(0,0,0,.06);
+                      "
+                    >
+
+                      <div>
+
+                        <strong>
+                          ${escapeHtml(
+                            product.name || ""
+                          )}
+                        </strong>
+
+                        <small
+                          style="
+                            display:block;
+                            margin-top:3px;
+                            opacity:.7;
+                          "
+                        >
+                          ${formatCurrency(
+                            Number(
+                              product.price || 0
+                            )
+                          )}
+                        </small>
+
+                      </div>
+
+                      <strong>
+                        ${quantity} pcs
+                      </strong>
+
+                    </div>
+                  `;
+
+                })
+                .join("")}
+
+            </div>
+
+          </div>
+        `;
+
+      })
+      .join("");
+
+}
+function toggleCategoryProducts(index) {
+
+  const productsContainer =
+    document.getElementById(
+      `categoryProducts-${index}`
+    );
+
+  if (!productsContainer) {
+    return;
+  }
+
+  const card =
+    productsContainer.closest(
+      ".category-card"
+    );
+
+  const icon =
+    card?.querySelector(
+      ".fa-chevron-down, .fa-chevron-up"
+    );
+
+  const isHidden =
+    productsContainer.style.display ===
+    "none";
+
+  productsContainer.style.display =
+    isHidden
+      ? "block"
+      : "none";
+
+  if (icon) {
+
+    icon.classList.toggle(
+      "fa-chevron-down",
+      !isHidden
+    );
+
+    icon.classList.toggle(
+      "fa-chevron-up",
+      isHidden
+    );
+
+  }
+
+}
+
+  // =========================================================
+  // GROUP PRODUCTS BY CATEGORY
+  // =========================================================
+
+  const categoryMap = {};
 
   products.forEach(product => {
 
-    const category =
+    const rawCategory =
       String(
-        product.category ||
-        "Uncategorized"
+        product.category || ""
       ).trim();
 
+    const category =
+      rawCategory || "Uncategorized";
 
-    if (!categoryMap[category]) {
+    // Case-insensitive grouping
+    const categoryKey =
+      category.toLowerCase();
 
-      categoryMap[category] = {
+    if (!categoryMap[categoryKey]) {
+
+      categoryMap[categoryKey] = {
+        name: category,
         products: 0,
         units: 0,
         value: 0
@@ -2637,17 +2892,14 @@ function renderCategories() {
 
     }
 
+    categoryMap[categoryKey].products += 1;
 
-    categoryMap[category].products += 1;
-
-
-    categoryMap[category].units +=
+    categoryMap[categoryKey].units +=
       Number(
         product.quantity || 0
       );
 
-
-    categoryMap[category].value +=
+    categoryMap[categoryKey].value +=
       Number(
         product.price || 0
       ) *
@@ -2658,41 +2910,39 @@ function renderCategories() {
   });
 
 
-  const categories =
-    Object.entries(
-      categoryMap
-    ).sort(
-      (
-        a,
-        b
-      ) =>
-        b[1].units -
-        a[1].units
-    );
+  // =========================================================
+  // SORT CATEGORIES
+  // =========================================================
 
+  const categories =
+    Object.values(categoryMap)
+      .sort(
+        (a, b) =>
+          b.units - a.units
+      );
+
+
+  // =========================================================
+  // DISPLAY CATEGORY GROUPS
+  // =========================================================
 
   container.innerHTML =
     categories
-      .map(
-        (
-          [
-            category,
-            data
-          ]
-        ) => `
+      .map(category => {
 
+        return `
           <div class="panel">
 
             <b>
               ${escapeHtml(
-                category
+                category.name
               )}
             </b>
 
             <strong>
-              ${data.products}
+              ${category.products}
               ${
-                data.products === 1
+                category.products === 1
                   ? "item"
                   : "items"
               }
@@ -2704,7 +2954,8 @@ function renderCategories() {
                 margin-top:8px;
               "
             >
-              ${data.units} pcs in stock
+              ${category.units}
+              pcs in stock
             </small>
 
             <small
@@ -2715,17 +2966,15 @@ function renderCategories() {
             >
               Value:
               ${formatCurrency(
-                data.value
+                category.value
               )}
             </small>
 
           </div>
+        `;
 
-        `
-      )
+      })
       .join("");
-
-}
 
 
 // =========================================================
@@ -2759,15 +3008,13 @@ function filterProducts() {
 
 
   const globalTerm =
-    globalSearch
-      ?.value
+    globalSearch?.value
       .trim()
       .toLowerCase() || "";
 
 
   const productTerm =
-    productSearch
-      ?.value
+    productSearch?.value
       .trim()
       .toLowerCase() || "";
 
@@ -2782,55 +3029,99 @@ function filterProducts() {
     "All Status";
 
 
-  const searchTerm =
-    productTerm ||
-    globalTerm;
-
-
   const filtered =
-    products.filter(
-      product => {
+    products.filter(product => {
 
-        const matchesSearch =
-          !searchTerm ||
-
-          String(
-            product.name || ""
-          )
-            .toLowerCase()
-            .includes(searchTerm) ||
-
-          String(
-            product.category || ""
-          )
-            .toLowerCase()
-            .includes(searchTerm);
+      const name =
+        String(
+          product.name || ""
+        )
+        .trim()
+        .toLowerCase();
 
 
-        const matchesCategory =
-          category === "All Categories" ||
-          product.category === category;
+      const productCategory =
+        String(
+          product.category || ""
+        )
+        .trim()
+        .toLowerCase();
 
 
-        const [
-          productStatus
-        ] =
-          statusOf(product);
+      // -----------------------------------------
+      // SEARCH
+      // -----------------------------------------
+
+      const matchesGlobalSearch =
+        !globalTerm ||
+        name.includes(globalTerm) ||
+        productCategory.includes(globalTerm);
 
 
-        const matchesStatus =
-          status === "All Status" ||
-          productStatus === status;
+      const matchesProductSearch =
+        !productTerm ||
+        name.includes(productTerm) ||
+        productCategory.includes(productTerm);
 
 
-        return (
-          matchesSearch &&
-          matchesCategory &&
-          matchesStatus
+      // -----------------------------------------
+      // CATEGORY
+      // -----------------------------------------
+
+      const matchesCategory =
+        category === "All Categories" ||
+        product.category === category;
+
+
+      // -----------------------------------------
+      // STATUS
+      // -----------------------------------------
+
+      const quantity =
+        Number(
+          product.quantity || 0
         );
 
+
+      const minimum =
+        Number(
+          product.minimum || 0
+        );
+
+
+      let productStatus =
+        "In Stock";
+
+
+      if (quantity === 0) {
+
+        productStatus =
+          "Out of Stock";
+
+      } else if (
+        quantity <= minimum
+      ) {
+
+        productStatus =
+          "Low Stock";
+
       }
-    );
+
+
+      const matchesStatus =
+        status === "All Status" ||
+        status === "All" ||
+        productStatus === status;
+
+
+      return (
+        matchesGlobalSearch &&
+        matchesProductSearch &&
+        matchesCategory &&
+        matchesStatus
+      );
+
+    });
 
 
   renderProducts(
@@ -2838,7 +3129,6 @@ function filterProducts() {
   );
 
 }
-
 
 // =========================================================
 // TRANSACTION FILTERS

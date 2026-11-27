@@ -4509,3 +4509,111 @@ button.is-loading {
   }
 
 }
+/* =========================================================
+   CATEGORY CARDS
+   ========================================================= */
+
+.category-cards {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(240px, 1fr)
+  );
+  gap: 18px;
+  align-items: start;
+}
+
+.category-card {
+  position: relative;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(91, 111, 216, 0.12);
+  background: var(--card-bg, #ffffff);
+  box-shadow: 0 6px 20px rgba(23, 36, 58, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  overflow: hidden;
+}
+
+.category-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(91, 111, 216, 0.28);
+  box-shadow: 0 10px 26px rgba(23, 36, 58, 0.10);
+}
+
+.category-card b {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text, #17243a);
+}
+
+.category-card strong {
+  color: var(--text, #17243a);
+}
+
+.category-card small {
+  color: var(--muted, #7b8496);
+  font-size: 13px;
+}
+
+.category-products {
+  background: rgba(91, 111, 216, 0.035);
+  border-radius: 12px;
+  padding: 8px 12px !important;
+}
+
+.category-products > div:last-child {
+  border-bottom: none !important;
+}
+
+.category-products strong {
+  font-size: 14px;
+}
+
+.category-products small {
+  font-size: 12px;
+}
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+body.dark .category-card {
+  background: #202a3d;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+body.dark .category-card:hover {
+  border-color: rgba(120, 140, 230, 0.35);
+}
+
+body.dark .category-products {
+  background: rgba(255, 255, 255, 0.035);
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark .category-products > div {
+  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .category-cards {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .category-card {
+    padding: 17px;
+    border-radius: 14px;
+  }
+
+}
