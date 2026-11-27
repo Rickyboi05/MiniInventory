@@ -1,3 +1,4 @@
+
 const API = "https://miniinventory.onrender.com";
 
 let products = [];
@@ -5,14 +6,19 @@ let editingProductId = null;
 let allTransactions = [];
 let filteredTransactions = [];
 
-
-// =========================================
+// =========================================================
 // START
-// =========================================
+// =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
 
+  setupAuth();
+
   setupNavigation();
+
+  setupSidebar();
+
+  setupNotifications();
 
   setupProductForm();
 
@@ -26,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupSettings();
 
-  loadProducts();
+  setupTheme();
 
   updateDateTime();
 
@@ -42,88 +48,991 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+// =========================================================
+// AUTHENTICATION
+// =========================================================
+
+function setupAuth() {
+
+  const authScreen =
+    document.getElementById("authScreen");
+
+  const appShell =
+    document.getElementById("appShell");
+
+  const loginContainer =
+    document.getElementById("loginContainer");
+
+  const registerContainer =
+    document.getElementById("registerContainer");
+
+  const loginForm =
+    document.getElementById("loginForm");
+
+  const registerForm =
+    document.getElementById("registerForm");
+
+  const showRegisterBtn =
+    document.getElementById("showRegisterBtn");
+
+  const showLoginBtn =
+    document.getElementById("showLoginBtn");
+
+  if (!authScreen || !appShell) {
+    return;
+  }
 
 
-// =========================================
-// NAVIGATION
-// =========================================
+  // -----------------------------------------
+  // SHOW LOGIN / REGISTER
+  // -----------------------------------------
 
-function setupNavigation() {
+  showRegisterBtn?.addEventListener(
+    "click",
+    () => {
 
-  document.querySelectorAll(".nav-item").forEach(btn => {
+      loginContainer?.classList.remove("active");
 
-    btn.addEventListener("click", () => {
+      registerContainer?.classList.add("active");
 
-      showPage(btn.dataset.page);
+      clearAuthMessages();
+
+    }
+  );
+
+
+  showLoginBtn?.addEventListener(
+    "click",
+    () => {
+
+      registerContainer?.classList.remove("active");
+
+      loginContainer?.classList.add("active");
+
+      clearAuthMessages();
+
+    }
+  );
+
+
+  // -----------------------------------------
+  // PASSWORD TOGGLE
+  // -----------------------------------------
+
+  document
+    .querySelectorAll(".password-toggle")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const targetId =
+            button.dataset.target;
+
+          const input =
+            document.getElementById(targetId);
+
+          if (!input) {
+            return;
+          }
+
+
+          if (input.type === "password") {
+
+            input.type = "text";
+
+            button.textContent = "🙈";
+
+            button.setAttribute(
+              "aria-label",
+              "Hide password"
+            );
+
+          } else {
+
+            input.type = "password";
+
+            button.textContent = "👁";
+
+            button.setAttribute(
+              "aria-label",
+              "Show password"
+            );
+
+          }
+
+        }
+      );
 
     });
 
-  });
 
+  // -----------------------------------------
+  // LOGIN
+  // -----------------------------------------
 
-  document.querySelectorAll("[data-page-link]").forEach(el => {
-
-    el.addEventListener("click", e => {
+  loginForm?.addEventListener(
+    "submit",
+    async e => {
 
       e.preventDefault();
 
-      showPage(el.dataset.pageLink);
 
-    });
-
-  });
-
-
-  document
-    .getElementById("addProductBtn")
-    ?.addEventListener("click", () => {
-
-      showPage("add");
-
-    });
+      const email =
+        document
+          .getElementById("loginEmail")
+          ?.value
+          .trim();
 
 
-  document
-    .getElementById("globalSearch")
-    ?.addEventListener("input", () => {
-
-      filterProducts();
-
-    });
+      const password =
+        document
+          .getElementById("loginPassword")
+          ?.value || "";
 
 
-  document
-    .getElementById("productSearch")
-    ?.addEventListener("input", () => {
+      if (!email || !password) {
 
-      filterProducts();
+        showAuthMessage(
+          "loginMessage",
+          "Please enter your email and password.",
+          "error"
+        );
 
-    });
+        return;
 
-
-  document
-    .querySelector("#page-products .filters select:nth-of-type(1)")
-    ?.addEventListener("change", () => {
-
-      filterProducts();
-
-    });
+      }
 
 
-  document
-    .querySelector("#page-products .filters select:nth-of-type(2)")
-    ?.addEventListener("change", () => {
+      const submitButton =
+        loginForm.querySelector(
+          'button[type="submit"]'
+        );
 
-      filterProducts();
 
-    });
+      setButtonLoading(
+        submitButton,
+        true,
+        "Signing In..."
+      );
+
+
+      clearAuthMessage(
+        "loginMessage"
+      );
+
+
+      try {
+
+        const res =
+          await fetch(
+            `${API}/api/auth/login`,
+            {
+
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  email,
+                  password
+                })
+
+            }
+          );
+
+
+        const data =
+          await res.json();
+
+
+        if (!res.ok || !data.success) {
+
+          throw new Error(
+            data.message ||
+            "Invalid email or password."
+          );
+
+        }
+
+
+        localStorage.setItem(
+          "stocklyAuthToken",
+          data.token
+        );
+
+
+        localStorage.setItem(
+          "stocklyUser",
+          JSON.stringify(data.user)
+        );
+
+
+        localStorage.setItem(
+          "stocklyProfileName",
+          data.user.name
+        );
+
+
+        localStorage.setItem(
+          "stocklyProfileRole",
+          data.user.role ||
+          "Inventory Manager"
+        );
+
+
+        showAuthenticatedApp();
+
+
+      } catch (err) {
+
+        console.error(
+          "Login error:",
+          err
+        );
+
+
+        showAuthMessage(
+          "loginMessage",
+          err.message ||
+          "Unable to login.",
+          "error"
+        );
+
+      } finally {
+
+        setButtonLoading(
+          submitButton,
+          false,
+          "Sign In"
+        );
+
+      }
+
+    }
+  );
+
+
+  // -----------------------------------------
+  // REGISTER
+  // -----------------------------------------
+
+  registerForm?.addEventListener(
+    "submit",
+    async e => {
+
+      e.preventDefault();
+
+
+      const name =
+        document
+          .getElementById("registerName")
+          ?.value
+          .trim();
+
+
+      const email =
+        document
+          .getElementById("registerEmail")
+          ?.value
+          .trim();
+
+
+      const password =
+        document
+          .getElementById("registerPassword")
+          ?.value || "";
+
+
+      const confirmPassword =
+        document
+          .getElementById("registerConfirmPassword")
+          ?.value || "";
+
+
+      if (!name) {
+
+        showAuthMessage(
+          "registerMessage",
+          "Please enter your full name.",
+          "error"
+        );
+
+        return;
+
+      }
+
+
+      if (!email) {
+
+        showAuthMessage(
+          "registerMessage",
+          "Please enter your email.",
+          "error"
+        );
+
+        return;
+
+      }
+
+
+      if (password.length < 6) {
+
+        showAuthMessage(
+          "registerMessage",
+          "Password must be at least 6 characters.",
+          "error"
+        );
+
+        return;
+
+      }
+
+
+      if (password !== confirmPassword) {
+
+        showAuthMessage(
+          "registerMessage",
+          "Passwords do not match.",
+          "error"
+        );
+
+        return;
+
+      }
+
+
+      const submitButton =
+        registerForm.querySelector(
+          'button[type="submit"]'
+        );
+
+
+      setButtonLoading(
+        submitButton,
+        true,
+        "Creating..."
+      );
+
+
+      clearAuthMessage(
+        "registerMessage"
+      );
+
+
+      try {
+
+        const res =
+          await fetch(
+            `${API}/api/auth/register`,
+            {
+
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  name,
+                  email,
+                  password
+                })
+
+            }
+          );
+
+
+        const data =
+          await res.json();
+
+
+        if (!res.ok || !data.success) {
+
+          throw new Error(
+            data.message ||
+            "Unable to create account."
+          );
+
+        }
+
+
+        registerForm.reset();
+
+
+        registerContainer?.classList.remove(
+          "active"
+        );
+
+        loginContainer?.classList.add(
+          "active"
+        );
+
+
+        const loginEmail =
+          document.getElementById(
+            "loginEmail"
+          );
+
+
+        if (loginEmail) {
+
+          loginEmail.value =
+            email;
+
+        }
+
+
+        showAuthMessage(
+          "loginMessage",
+          "Account created successfully. You can now sign in.",
+          "success"
+        );
+
+
+      } catch (err) {
+
+        console.error(
+          "Register error:",
+          err
+        );
+
+
+        showAuthMessage(
+          "registerMessage",
+          err.message ||
+          "Unable to create account.",
+          "error"
+        );
+
+      } finally {
+
+        setButtonLoading(
+          submitButton,
+          false,
+          "Create Account"
+        );
+
+      }
+
+    }
+  );
+
+
+  // -----------------------------------------
+  // RESTORE SESSION
+  // -----------------------------------------
+
+  const token =
+    localStorage.getItem(
+      "stocklyAuthToken"
+    );
+
+
+  const savedUser =
+    localStorage.getItem(
+      "stocklyUser"
+    );
+
+
+  if (token && savedUser) {
+
+    try {
+
+      const user =
+        JSON.parse(savedUser);
+
+
+      if (user?.email) {
+
+        showAuthenticatedApp();
+
+      } else {
+
+        logout();
+
+      }
+
+    } catch {
+
+      logout();
+
+    }
+
+  } else {
+
+    showLoggedOutApp();
+
+  }
 
 }
 
 
-// =========================================
+// =========================================================
+// AUTH UI
+// =========================================================
+
+function showAuthenticatedApp() {
+
+  const authScreen =
+    document.getElementById("authScreen");
+
+  const appShell =
+    document.getElementById("appShell");
+
+
+  if (authScreen) {
+
+    authScreen.style.display =
+      "none";
+
+  }
+
+
+  if (appShell) {
+
+    appShell.style.display =
+      "flex";
+
+  }
+
+
+  loadAuthenticatedUser();
+
+  loadProducts();
+
+  updateDateTime();
+
+}
+
+
+// =========================================================
+// LOGGED OUT UI
+// =========================================================
+
+function showLoggedOutApp() {
+
+  const authScreen =
+    document.getElementById("authScreen");
+
+  const appShell =
+    document.getElementById("appShell");
+
+
+  if (authScreen) {
+
+    authScreen.style.display =
+      "flex";
+
+  }
+
+
+  if (appShell) {
+
+    appShell.style.display =
+      "none";
+
+  }
+
+}
+
+
+// =========================================================
+// LOAD AUTHENTICATED USER
+// =========================================================
+
+function loadAuthenticatedUser() {
+
+  const savedUser =
+    localStorage.getItem(
+      "stocklyUser"
+    );
+
+
+  if (!savedUser) {
+    return;
+  }
+
+
+  try {
+
+    const user =
+      JSON.parse(savedUser);
+
+
+    const name =
+      user.name ||
+      "User";
+
+
+    const role =
+      user.role ||
+      "Inventory Manager";
+
+
+    localStorage.setItem(
+      "stocklyProfileName",
+      name
+    );
+
+
+    localStorage.setItem(
+      "stocklyProfileRole",
+      role
+    );
+
+
+    loadSettings();
+
+
+  } catch (err) {
+
+    console.error(
+      "User loading error:",
+      err
+    );
+
+  }
+
+}
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
+function logout() {
+
+  localStorage.removeItem(
+    "stocklyAuthToken"
+  );
+
+
+  localStorage.removeItem(
+    "stocklyUser"
+  );
+
+
+  products = [];
+
+  allTransactions = [];
+
+  filteredTransactions = [];
+
+  editingProductId = null;
+
+
+  showLoggedOutApp();
+
+}
+
+
+// =========================================================
+// AUTH MESSAGE
+// =========================================================
+
+function showAuthMessage(
+  id,
+  message,
+  type
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    message;
+
+
+  element.className =
+    `auth-message ${type}`;
+
+}
+
+
+function clearAuthMessage(id) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent = "";
+
+  element.className =
+    "auth-message";
+
+}
+
+
+function clearAuthMessages() {
+
+  clearAuthMessage(
+    "loginMessage"
+  );
+
+  clearAuthMessage(
+    "registerMessage"
+  );
+
+}
+
+
+// =========================================================
+// BUTTON LOADING
+// =========================================================
+
+function setButtonLoading(
+  button,
+  loading,
+  loadingText
+) {
+
+  if (!button) {
+    return;
+  }
+
+
+  if (loading) {
+
+    button.dataset.originalText =
+      button.textContent;
+
+
+    button.disabled = true;
+
+    button.classList.add(
+      "is-loading"
+    );
+
+    button.innerHTML = `
+      <span class="button-spinner"></span>
+      ${escapeHtml(loadingText)}
+    `;
+
+  } else {
+
+    button.disabled = false;
+
+    button.classList.remove(
+      "is-loading"
+    );
+
+    button.textContent =
+      button.dataset.originalText ||
+      loadingText;
+
+    delete button.dataset.originalText;
+
+  }
+
+}
+
+
+// =========================================================
+// TABLE LOADING
+// =========================================================
+
+function showTableLoading(
+  tbodyId,
+  message = "Loading...",
+  colspan = 6
+) {
+
+  const tbody =
+    document.getElementById(
+      tbodyId
+    );
+
+
+  if (!tbody) {
+    return;
+  }
+
+
+  tbody.innerHTML = `
+
+    <tr class="loading-row">
+
+      <td colspan="${colspan}">
+
+        <div class="loading-state">
+
+          <span class="loading-spinner"></span>
+
+          <span>
+            ${escapeHtml(message)}
+          </span>
+
+        </div>
+
+      </td>
+
+    </tr>
+
+  `;
+
+}
+
+
+// =========================================================
+// FETCH WITH TIMEOUT
+// =========================================================
+
+async function fetchWithTimeout(
+  url,
+  options = {},
+  timeout = 30000
+) {
+
+  const controller =
+    new AbortController();
+
+
+  const timer =
+    setTimeout(
+      () => {
+
+        controller.abort();
+
+      },
+      timeout
+    );
+
+
+  try {
+
+    return await fetch(
+      url,
+      {
+        ...options,
+        signal:
+          controller.signal
+      }
+    );
+
+  } finally {
+
+    clearTimeout(timer);
+
+  }
+
+}
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+
+function setupNavigation() {
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          showPage(
+            btn.dataset.page
+          );
+
+        }
+      );
+
+    });
+
+
+  document
+    .querySelectorAll("[data-page-link]")
+    .forEach(el => {
+
+      el.addEventListener(
+        "click",
+        e => {
+
+          e.preventDefault();
+
+          showPage(
+            el.dataset.pageLink
+          );
+
+        }
+      );
+
+    });
+
+
+  document
+    .getElementById("addProductBtn")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        showPage("add");
+
+      }
+    );
+
+
+  document
+    .getElementById("globalSearch")
+    ?.addEventListener(
+      "input",
+      filterProducts
+    );
+
+
+  document
+    .getElementById("productSearch")
+    ?.addEventListener(
+      "input",
+      filterProducts
+    );
+
+
+  document
+    .querySelector(
+      "#page-products .filters select:nth-of-type(1)"
+    )
+    ?.addEventListener(
+      "change",
+      filterProducts
+    );
+
+
+  document
+    .querySelector(
+      "#page-products .filters select:nth-of-type(2)"
+    )
+    ?.addEventListener(
+      "change",
+      filterProducts
+    );
+
+}
+
+
+// =========================================================
 // SHOW PAGE
-// =========================================
+// =========================================================
 
 function showPage(page) {
 
@@ -131,18 +1040,24 @@ function showPage(page) {
     .querySelectorAll(".page")
     .forEach(p => {
 
-      p.classList.remove("active-page");
+      p.classList.remove(
+        "active-page"
+      );
 
     });
 
 
   const targetPage =
-    document.getElementById(`page-${page}`);
+    document.getElementById(
+      `page-${page}`
+    );
 
 
   if (targetPage) {
 
-    targetPage.classList.add("active-page");
+    targetPage.classList.add(
+      "active-page"
+    );
 
   }
 
@@ -198,19 +1113,42 @@ function showPage(page) {
   }
 
 }
-
-
-// =========================================
+// =========================================================
 // LOAD PRODUCTS
-// =========================================
+// =========================================================
 
 async function loadProducts() {
+
+  const token =
+    localStorage.getItem(
+      "stocklyAuthToken"
+    );
+
+
+  if (!token) {
+    return;
+  }
+
+
+  showTableLoading(
+    "productsBody",
+    "Loading products...",
+    6
+  );
+
 
   try {
 
     const res =
-      await fetch(
-        `${API}/api/products`
+      await fetchWithTimeout(
+        `${API}/api/products`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        },
+        30000
       );
 
 
@@ -243,13 +1181,19 @@ async function loadProducts() {
         : [];
 
 
-    renderProducts(products);
+    renderProducts(
+      products
+    );
+
+
+    updateNotifications();
 
     updateDashboard();
 
     setupCategoryFilter();
 
     renderCategories();
+
 
     await loadDashboardTransactions();
 
@@ -264,11 +1208,13 @@ async function loadProducts() {
 
     products = [];
 
+
     renderProducts([]);
 
     updateDashboard();
 
     renderCategories();
+
 
     showProductLoadingError();
 
@@ -277,51 +1223,9 @@ async function loadProducts() {
 }
 
 
-// =========================================
-// PRODUCT STATUS
-// =========================================
-
-function statusOf(product) {
-
-  const quantity =
-    Number(product.quantity || 0);
-
-
-  const minimum =
-    Number(product.minimum || 0);
-
-
-  if (quantity === 0) {
-
-    return [
-      "Out of Stock",
-      "red"
-    ];
-
-  }
-
-
-  if (quantity <= minimum) {
-
-    return [
-      "Low Stock",
-      "yellow"
-    ];
-
-  }
-
-
-  return [
-    "In Stock",
-    "green"
-  ];
-
-}
-
-
-// =========================================
+// =========================================================
 // RENDER PRODUCTS
-// =========================================
+// =========================================================
 
 function renderProducts(list) {
 
@@ -331,14 +1235,19 @@ function renderProducts(list) {
     );
 
 
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
 
   if (!list.length) {
 
     body.innerHTML = `
       <tr>
-        <td colspan="7" class="empty-table">
+        <td
+          colspan="6"
+          class="empty-table"
+        >
           No products found. Add your first product.
         </td>
       </tr>
@@ -349,83 +1258,82 @@ function renderProducts(list) {
   }
 
 
-  body.innerHTML = list
-    .map(product => {
+  body.innerHTML =
+    list
+      .map(product => {
 
-      const [
-        status,
-        cls
-      ] = statusOf(product);
-
-
-      return `
-        <tr>
-
-          
-
-          <td>
-
-            <b>
-              ${escapeHtml(product.name)}
-            </b>
-
-          </td>
+        const [
+          status,
+          cls
+        ] = statusOf(product);
 
 
-          <td>
-            ${escapeHtml(product.category)}
-          </td>
+        return `
+          <tr>
 
+            <td>
+              <b>
+                ${escapeHtml(
+                  product.name
+                )}
+              </b>
+            </td>
 
-          <td>
-            ${formatCurrency(product.price)}
-          </td>
+            <td>
+              ${escapeHtml(
+                product.category
+              )}
+            </td>
 
+            <td>
+              ${formatCurrency(
+                product.price
+              )}
+            </td>
 
-          <td>
-            ${Number(product.quantity || 0)}
-          </td>
+            <td>
+              ${Number(
+                product.quantity || 0
+              )}
+            </td>
 
+            <td>
+              <span class="tag ${cls}">
+                ${status}
+              </span>
+            </td>
 
-          <td>
+            <td>
+              <div class="product-actions">
 
-            <span class="tag ${cls}">
-              ${status}
-            </span>
+                <button
+                  type="button"
+                  class="edit-product-btn"
+                  data-id="${escapeHtml(
+                    product.id
+                  )}"
+                >
+                  Edit
+                </button>
 
-          </td>
+                <button
+                  type="button"
+                  class="delete-product-btn"
+                  data-id="${escapeHtml(
+                    product.id
+                  )}"
+                >
+                  Delete
+                </button>
 
+              </div>
+            </td>
 
-          <td>
+          </tr>
+        `;
 
-            <div class="product-actions">
-
-              <button
-                type="button"
-                class="edit-product-btn"
-                data-id="${escapeHtml(product.id)}"
-              >
-                Edit
-              </button>
-
-
-              <button
-                type="button"
-                class="delete-product-btn"
-                data-id="${escapeHtml(product.id)}"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </td>
-
-        </tr>
-      `;
-
-    })
-    .join("");
+      })
+      .join("");
 
 
   document
@@ -466,9 +1374,9 @@ function renderProducts(list) {
 }
 
 
-// =========================================
+// =========================================================
 // DASHBOARD
-// =========================================
+// =========================================================
 
 function updateDashboard() {
 
@@ -480,10 +1388,16 @@ function updateDashboard() {
     products.filter(product => {
 
       const quantity =
-        Number(product.quantity || 0);
+        Number(
+          product.quantity || 0
+        );
+
 
       const minimum =
-        Number(product.minimum || 0);
+        Number(
+          product.minimum || 0
+        );
+
 
       return (
         quantity > 0 &&
@@ -512,19 +1426,20 @@ function updateDashboard() {
 
   const value =
     products.reduce(
-
       (sum, product) => {
 
         return (
           sum +
-          Number(product.price || 0) *
-          Number(product.quantity || 0)
+          Number(
+            product.price || 0
+          ) *
+          Number(
+            product.quantity || 0
+          )
         );
 
       },
-
       0
-
     );
 
 
@@ -636,9 +1551,9 @@ function updateDashboard() {
 }
 
 
-// =========================================
+// =========================================================
 // DASHBOARD GREETING
-// =========================================
+// =========================================================
 
 function updateDashboardGreeting() {
 
@@ -679,10 +1594,7 @@ function updateDashboardGreeting() {
     "Good morning";
 
 
-  if (
-    hour >= 12 &&
-    hour < 18
-  ) {
+  if (hour >= 12 && hour < 18) {
 
     greeting =
       "Good afternoon";
@@ -704,9 +1616,9 @@ function updateDashboardGreeting() {
 }
 
 
-// =========================================
-// DYNAMIC CURRENT DATE & TIME
-// =========================================
+// =========================================================
+// DATE & TIME
+// =========================================================
 
 function updateDateTime() {
 
@@ -760,9 +1672,9 @@ function updateDateTime() {
 }
 
 
-// =========================================
+// =========================================================
 // LOW STOCK NOTICE
-// =========================================
+// =========================================================
 
 function updateLowStockNotice() {
 
@@ -781,10 +1693,16 @@ function updateLowStockNotice() {
     products.filter(product => {
 
       const quantity =
-        Number(product.quantity || 0);
+        Number(
+          product.quantity || 0
+        );
+
 
       const minimum =
-        Number(product.minimum || 0);
+        Number(
+          product.minimum || 0
+        );
+
 
       return (
         quantity > 0 &&
@@ -801,9 +1719,9 @@ function updateLowStockNotice() {
 }
 
 
-// =========================================
-// DASHBOARD RECENT TRANSACTIONS
-// =========================================
+// =========================================================
+// DASHBOARD TRANSACTIONS
+// =========================================================
 
 async function loadDashboardTransactions() {
 
@@ -819,17 +1737,47 @@ async function loadDashboardTransactions() {
 
 
   container.innerHTML = `
-    <div>
-      Loading recent transactions...
+
+    <div class="loading-state">
+
+      <span class="loading-spinner"></span>
+
+      <span>
+        Loading recent transactions...
+      </span>
+
     </div>
+
   `;
 
 
   try {
 
+    const token =
+      localStorage.getItem(
+        "stocklyAuthToken"
+      );
+
+
+    if (!token) {
+
+      throw new Error(
+        "Authentication required."
+      );
+
+    }
+
+
     const res =
-      await fetch(
-        `${API}/api/transactions`
+      await fetchWithTimeout(
+        `${API}/api/transactions`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        },
+        30000
       );
 
 
@@ -863,7 +1811,10 @@ async function loadDashboardTransactions() {
 
 
     const recent =
-      transactions.slice(0, 3);
+      transactions.slice(
+        0,
+        3
+      );
 
 
     if (!recent.length) {
@@ -901,7 +1852,6 @@ async function loadDashboardTransactions() {
                 ${isStockIn ? "↑" : "↓"}
               </span>
 
-
               <span>
 
                 ${escapeHtml(
@@ -921,7 +1871,6 @@ async function loadDashboardTransactions() {
                 </small>
 
               </span>
-
 
               <b
                 class="${
@@ -965,11 +1914,9 @@ async function loadDashboardTransactions() {
   }
 
 }
-
-
-// =========================================
+// =========================================================
 // ADD PRODUCT
-// =========================================
+// =========================================================
 
 function setupProductForm() {
 
@@ -979,7 +1926,9 @@ function setupProductForm() {
     );
 
 
-  if (!form) return;
+  if (!form) {
+    return;
+  }
 
 
   form.addEventListener(
@@ -1088,21 +2037,21 @@ function setupProductForm() {
 
 
       const payload = {
-
         name,
-
         category,
-
         price,
-
         quantity,
-
         minimum
-
       };
 
 
       try {
+
+        const token =
+          localStorage.getItem(
+            "stocklyAuthToken"
+          );
+
 
         const res =
           await fetch(
@@ -1113,13 +2062,14 @@ function setupProductForm() {
 
               headers: {
                 "Content-Type":
-                  "application/json"
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`
               },
 
               body:
-                JSON.stringify(
-                  payload
-                )
+                JSON.stringify(payload)
 
             }
           );
@@ -1129,10 +2079,7 @@ function setupProductForm() {
           await res.json();
 
 
-        if (
-          !res.ok ||
-          !data.success
-        ) {
+        if (!res.ok || !data.success) {
 
           throw new Error(
             data.message ||
@@ -1163,6 +2110,7 @@ function setupProductForm() {
           err
         );
 
+
         alert(
           err.message ||
           "Unable to save product."
@@ -1176,9 +2124,9 @@ function setupProductForm() {
 }
 
 
-// =========================================
+// =========================================================
 // EDIT PRODUCT
-// =========================================
+// =========================================================
 
 function setupEditProduct() {
 
@@ -1213,21 +2161,13 @@ function setupEditProduct() {
 
   cancelBtn?.addEventListener(
     "click",
-    () => {
-
-      closeEditProduct();
-
-    }
+    closeEditProduct
   );
 
 
   closeBtn?.addEventListener(
     "click",
-    () => {
-
-      closeEditProduct();
-
-    }
+    closeEditProduct
   );
 
 
@@ -1235,9 +2175,7 @@ function setupEditProduct() {
     "click",
     e => {
 
-      if (
-        e.target === modal
-      ) {
+      if (e.target === modal) {
 
         closeEditProduct();
 
@@ -1358,21 +2296,21 @@ function setupEditProduct() {
 
 
       const payload = {
-
         name,
-
         category,
-
         price,
-
         quantity,
-
         minimum
-
       };
 
 
       try {
+
+        const token =
+          localStorage.getItem(
+            "stocklyAuthToken"
+          );
+
 
         const res =
           await fetch(
@@ -1383,13 +2321,14 @@ function setupEditProduct() {
 
               headers: {
                 "Content-Type":
-                  "application/json"
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`
               },
 
               body:
-                JSON.stringify(
-                  payload
-                )
+                JSON.stringify(payload)
 
             }
           );
@@ -1399,10 +2338,7 @@ function setupEditProduct() {
           await res.json();
 
 
-        if (
-          !res.ok ||
-          !data.success
-        ) {
+        if (!res.ok || !data.success) {
 
           throw new Error(
             data.message ||
@@ -1417,10 +2353,11 @@ function setupEditProduct() {
         );
 
 
-        closeEditProduct();
-
+       closeEditProduct();
 
         await loadProducts();
+
+        updateNotifications();
 
 
       } catch (err) {
@@ -1430,6 +2367,7 @@ function setupEditProduct() {
           err
         );
 
+
         alert(
           err.message ||
           "Unable to update product."
@@ -1438,15 +2376,14 @@ function setupEditProduct() {
       }
 
     }
-
   );
 
 }
 
 
-// =========================================
-// OPEN EDIT MODAL
-// =========================================
+// =========================================================
+// OPEN EDIT
+// =========================================================
 
 function openEditProduct(id) {
 
@@ -1469,7 +2406,8 @@ function openEditProduct(id) {
   }
 
 
-  editingProductId = id;
+  editingProductId =
+    id;
 
 
   const modal =
@@ -1543,9 +2481,7 @@ function openEditProduct(id) {
   }
 
 
-  modal.classList.add(
-    "open"
-  );
+  modal.classList.add("open");
 
 
   name?.focus();
@@ -1553,9 +2489,9 @@ function openEditProduct(id) {
 }
 
 
-// =========================================
-// CLOSE EDIT MODAL
-// =========================================
+// =========================================================
+// CLOSE EDIT
+// =========================================================
 
 function closeEditProduct() {
 
@@ -1576,9 +2512,7 @@ function closeEditProduct() {
 
 
   if (form) {
-
     form.reset();
-
   }
 
 
@@ -1593,9 +2527,9 @@ function closeEditProduct() {
 }
 
 
-// =========================================
+// =========================================================
 // DELETE PRODUCT
-// =========================================
+// =========================================================
 
 async function deleteProduct(id) {
 
@@ -1624,10 +2558,7 @@ async function deleteProduct(id) {
     );
 
 
-  if (
-    deleteConfirmation !==
-    "false"
-  ) {
+  if (deleteConfirmation !== "false") {
 
     const confirmed =
       confirm(
@@ -1644,11 +2575,24 @@ async function deleteProduct(id) {
 
   try {
 
+    const token =
+      localStorage.getItem(
+        "stocklyAuthToken"
+      );
+
+
     const res =
       await fetch(
         `${API}/api/products/${id}`,
         {
-          method: "DELETE"
+
+          method: "DELETE",
+
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+
         }
       );
 
@@ -1657,10 +2601,7 @@ async function deleteProduct(id) {
       await res.json();
 
 
-    if (
-      !res.ok ||
-      !data.success
-    ) {
+    if (!res.ok || !data.success) {
 
       throw new Error(
         data.message ||
@@ -1685,6 +2626,7 @@ async function deleteProduct(id) {
       err
     );
 
+
     alert(
       err.message ||
       "Unable to delete product."
@@ -1695,9 +2637,9 @@ async function deleteProduct(id) {
 }
 
 
-// =========================================
+// =========================================================
 // CATEGORY FILTER
-// =========================================
+// =========================================================
 
 function setupCategoryFilter() {
 
@@ -1718,7 +2660,6 @@ function setupCategoryFilter() {
 
   const categories = [
     ...new Set(
-
       products
         .map(
           product =>
@@ -1730,7 +2671,6 @@ function setupCategoryFilter() {
           category =>
             category
         )
-
     )
   ].sort();
 
@@ -1744,13 +2684,15 @@ function setupCategoryFilter() {
     ${categories
       .map(
         category => `
-
           <option
-            value="${escapeHtml(category)}"
+            value="${escapeHtml(
+              category
+            )}"
           >
-            ${escapeHtml(category)}
+            ${escapeHtml(
+              category
+            )}
           </option>
-
         `
       )
       .join("")}
@@ -1758,11 +2700,7 @@ function setupCategoryFilter() {
   `;
 
 
-  if (
-    categories.includes(
-      currentValue
-    )
-  ) {
+  if (categories.includes(currentValue)) {
 
     categorySelect.value =
       currentValue;
@@ -1777,9 +2715,9 @@ function setupCategoryFilter() {
 }
 
 
-// =========================================
+// =========================================================
 // CATEGORIES
-// =========================================
+// =========================================================
 
 function renderCategories() {
 
@@ -1830,13 +2768,9 @@ function renderCategories() {
     if (!categoryMap[category]) {
 
       categoryMap[category] = {
-
         products: 0,
-
         units: 0,
-
         value: 0
-
       };
 
     }
@@ -1932,9 +2866,9 @@ function renderCategories() {
 }
 
 
-// =========================================
+// =========================================================
 // SEARCH + FILTER
-// =========================================
+// =========================================================
 
 function filterProducts() {
 
@@ -2012,26 +2946,19 @@ function filterProducts() {
 
 
         const matchesCategory =
-          category ===
-            "All Categories" ||
-
-          product.category ===
-            category;
+          category === "All Categories" ||
+          product.category === category;
 
 
         const [
           productStatus
-        ] = statusOf(
-          product
-        );
+        ] =
+          statusOf(product);
 
 
         const matchesStatus =
-          status ===
-            "All Status" ||
-
-          productStatus ===
-            status;
+          status === "All Status" ||
+          productStatus === status;
 
 
         return (
@@ -2051,9 +2978,9 @@ function filterProducts() {
 }
 
 
-// =========================================
+// =========================================================
 // TRANSACTION FILTERS
-// =========================================
+// =========================================================
 
 function setupTransactionFilters() {
 
@@ -2095,9 +3022,9 @@ function setupTransactionFilters() {
 }
 
 
-// =========================================
+// =========================================================
 // FILTER TRANSACTIONS
-// =========================================
+// =========================================================
 
 function renderFilteredTransactions() {
 
@@ -2210,10 +3137,7 @@ function renderFilteredTransactions() {
           );
 
 
-        if (
-          !startDate &&
-          !endDate
-        ) {
+        if (!startDate && !endDate) {
 
           return true;
 
@@ -2221,9 +3145,7 @@ function renderFilteredTransactions() {
 
 
         if (!transactionDate) {
-
           return false;
-
         }
 
 
@@ -2264,20 +3186,16 @@ function renderFilteredTransactions() {
 }
 
 
-// =========================================
+// =========================================================
 // GET TRANSACTION DATE
-// =========================================
+// =========================================================
 
-function getTransactionDate(
-  value
-) {
+function getTransactionDate(value) {
 
   try {
 
     if (!value) {
-
       return null;
-
     }
 
 
@@ -2309,11 +3227,7 @@ function getTransactionDate(
       new Date(value);
 
 
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
+    if (Number.isNaN(date.getTime())) {
 
       return null;
 
@@ -2332,9 +3246,9 @@ function getTransactionDate(
 }
 
 
-// =========================================
+// =========================================================
 // LOAD TRANSACTIONS
-// =========================================
+// =========================================================
 
 async function loadTransactions() {
 
@@ -2345,33 +3259,44 @@ async function loadTransactions() {
 
 
   if (!body) {
-
     return;
-
   }
 
 
-  body.innerHTML = `
-
-    <tr>
-
-      <td
-        colspan="7"
-        class="empty-table"
-      >
-        Loading transactions...
-      </td>
-
-    </tr>
-
-  `;
+  showTableLoading(
+    "transactionsBody",
+    "Loading transactions...",
+    7
+  );
 
 
   try {
 
+    const token =
+      localStorage.getItem(
+        "stocklyAuthToken"
+      );
+
+
+    if (!token) {
+
+      throw new Error(
+        "Authentication required."
+      );
+
+    }
+
+
     const res =
-      await fetch(
-        `${API}/api/transactions`
+      await fetchWithTimeout(
+        `${API}/api/transactions`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        },
+        30000
       );
 
 
@@ -2429,6 +3354,8 @@ async function loadTransactions() {
           class="empty-table"
         >
           Unable to load transactions.
+          Please try again.
+
         </td>
 
       </tr>
@@ -2439,14 +3366,11 @@ async function loadTransactions() {
 
 }
 
-
-// =========================================
+// =========================================================
 // RENDER TRANSACTIONS
-// =========================================
+// =========================================================
 
-function renderTransactions(
-  transactions
-) {
+function renderTransactions(transactions) {
 
   const body =
     document.getElementById(
@@ -2455,15 +3379,11 @@ function renderTransactions(
 
 
   if (!body) {
-
     return;
-
   }
 
 
-  if (
-    !transactions.length
-  ) {
+  if (!transactions.length) {
 
     body.innerHTML = `
 
@@ -2491,8 +3411,7 @@ function renderTransactions(
         transaction => {
 
           const isStockIn =
-            transaction.type ===
-            "Stock In";
+            transaction.type === "Stock In";
 
 
           return `
@@ -2504,7 +3423,6 @@ function renderTransactions(
                   transaction.createdAt
                 )}
               </td>
-
 
               <td>
 
@@ -2522,13 +3440,11 @@ function renderTransactions(
 
               </td>
 
-
               <td>
                 ${escapeHtml(
                   transaction.productName || ""
                 )}
               </td>
-
 
               <td
                 class="${
@@ -2548,13 +3464,11 @@ function renderTransactions(
 
               </td>
 
-
               <td>
                 ${Number(
                   transaction.previousStock || 0
                 )}
               </td>
-
 
               <td>
                 ${Number(
@@ -2562,11 +3476,9 @@ function renderTransactions(
                 )}
               </td>
 
-
               <td>
                 ${escapeHtml(
-                  transaction.remarks ||
-                  ""
+                  transaction.remarks || ""
                 )}
               </td>
 
@@ -2581,17 +3493,29 @@ function renderTransactions(
 }
 
 
-// =========================================
+// =========================================================
 // REPORTS
-// =========================================
+// =========================================================
 
 async function loadReports() {
 
   try {
 
+    const token =
+      localStorage.getItem(
+        "stocklyAuthToken"
+      );
+
+
     const res =
       await fetch(
-        `${API}/api/transactions`
+        `${API}/api/transactions`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        }
       );
 
 
@@ -2635,7 +3559,6 @@ async function loadReports() {
 
 
     renderTopCategories();
-
 
     renderCategorySummary();
 
@@ -2709,9 +3632,9 @@ async function loadReports() {
 }
 
 
-// =========================================
+// =========================================================
 // REPORT SUMMARY
-// =========================================
+// =========================================================
 
 function updateReportSummary(
   transactions
@@ -2725,8 +3648,7 @@ function updateReportSummary(
     transactions
       .filter(
         transaction =>
-          transaction.type ===
-          "Stock In"
+          transaction.type === "Stock In"
       )
       .reduce(
         (
@@ -2745,8 +3667,7 @@ function updateReportSummary(
     transactions
       .filter(
         transaction =>
-          transaction.type ===
-          "Stock Out"
+          transaction.type === "Stock Out"
       )
       .reduce(
         (
@@ -2763,9 +3684,10 @@ function updateReportSummary(
 
   const inventoryValue =
     products.reduce(
-
-      (total, product) =>
-
+      (
+        total,
+        product
+      ) =>
         total +
         Number(
           product.price || 0
@@ -2773,9 +3695,7 @@ function updateReportSummary(
         Number(
           product.quantity || 0
         ),
-
       0
-
     );
 
 
@@ -2807,9 +3727,9 @@ function updateReportSummary(
 }
 
 
-// =========================================
-// STOCK MOVEMENT REPORT
-// =========================================
+// =========================================================
+// STOCK MOVEMENT
+// =========================================================
 
 function renderStockMovement(
   transactions
@@ -2830,8 +3750,7 @@ function renderStockMovement(
     transactions
       .filter(
         transaction =>
-          transaction.type ===
-          "Stock In"
+          transaction.type === "Stock In"
       )
       .reduce(
         (
@@ -2850,8 +3769,7 @@ function renderStockMovement(
     transactions
       .filter(
         transaction =>
-          transaction.type ===
-          "Stock Out"
+          transaction.type === "Stock Out"
       )
       .reduce(
         (
@@ -2975,9 +3893,9 @@ function renderStockMovement(
 }
 
 
-// =========================================
+// =========================================================
 // TOP CATEGORIES
-// =========================================
+// =========================================================
 
 function renderTopCategories() {
 
@@ -3005,7 +3923,10 @@ function renderTopCategories() {
 
 
     categoryMap[category] =
-      (categoryMap[category] || 0) +
+      (
+        categoryMap[category] ||
+        0
+      ) +
       Number(
         product.quantity || 0
       );
@@ -3022,7 +3943,8 @@ function renderTopCategories() {
           a,
           b
         ) =>
-          b[1] - a[1]
+          b[1] -
+          a[1]
       );
 
 
@@ -3057,7 +3979,8 @@ function renderTopCategories() {
     </span>
 
     <small>
-      Top: ${escapeHtml(
+      Top:
+      ${escapeHtml(
         topCategory
       )}
     </small>
@@ -3071,9 +3994,9 @@ function renderTopCategories() {
 }
 
 
-// =========================================
+// =========================================================
 // CATEGORY SUMMARY
-// =========================================
+// =========================================================
 
 function renderCategorySummary() {
 
@@ -3121,7 +4044,6 @@ function renderCategorySummary() {
 
 
     categoryMap[category].value +=
-
       Number(
         product.price || 0
       ) *
@@ -3206,7 +4128,6 @@ function renderCategorySummary() {
 
             </div>
 
-
             <strong>
               ${formatCurrency(
                 data.value
@@ -3222,14 +4143,16 @@ function renderCategorySummary() {
 }
 
 
-// =========================================
+// =========================================================
 // REPORT EXPORT
-// =========================================
+// =========================================================
 
 function setupReportExport() {
 
   document
-    .getElementById("exportReportBtn")
+    .getElementById(
+      "exportReportBtn"
+    )
     ?.addEventListener(
       "click",
       exportReport
@@ -3237,7 +4160,9 @@ function setupReportExport() {
 
 
   document
-    .getElementById("exportTransactionsBtn")
+    .getElementById(
+      "exportTransactionsBtn"
+    )
     ?.addEventListener(
       "click",
       exportTransactions
@@ -3246,9 +4171,9 @@ function setupReportExport() {
 }
 
 
-// =========================================
+// =========================================================
 // EXPORT REPORT
-// =========================================
+// =========================================================
 
 function exportReport() {
 
@@ -3300,9 +4225,7 @@ function exportReport() {
 
           const [
             status
-          ] = statusOf(
-            product
-          );
+          ] = statusOf(product);
 
 
           const value =
@@ -3489,80 +4412,58 @@ function exportReport() {
 
       </head>
 
-
       <body>
 
         <h1>
           Stockly Inventory Report
         </h1>
 
-
         <div class="date">
-
           Generated:
           ${new Date().toLocaleString()}
-
         </div>
-
 
         <div class="summary">
 
           <div class="summary-box">
-
             Total Products
-
             <b>
               ${reportProducts}
             </b>
-
           </div>
 
-
           <div class="summary-box">
-
             Stock In
-
             <b>
               ${escapeHtml(
                 stockIn
               )}
             </b>
-
           </div>
 
-
           <div class="summary-box">
-
-            Stock Out
-
+        Stock Out
             <b>
               ${escapeHtml(
                 stockOut
               )}
             </b>
-
           </div>
 
-
           <div class="summary-box">
-
             Inventory Value
-
             <b>
               ${escapeHtml(
                 inventoryValue
               )}
             </b>
-
           </div>
 
         </div>
 
-
         <h2>
           Product Inventory
         </h2>
-
 
         <table>
 
@@ -3598,7 +4499,6 @@ function exportReport() {
 
           </thead>
 
-
           <tbody>
 
             ${
@@ -3618,13 +4518,9 @@ function exportReport() {
 
         </table>
 
-
         <div class="footer">
-
           Stockly | MiniInventory
-
         </div>
-
 
       </body>
 
@@ -3634,7 +4530,6 @@ function exportReport() {
 
 
     printWindow.document.close();
-
 
     printWindow.focus();
 
@@ -3666,9 +4561,9 @@ function exportReport() {
 }
 
 
-// =========================================
+// =========================================================
 // EXPORT TRANSACTIONS
-// =========================================
+// =========================================================
 
 function exportTransactions() {
 
@@ -3696,8 +4591,7 @@ function exportTransactions() {
         .map(transaction => {
 
           const isStockIn =
-            transaction.type ===
-            "Stock In";
+            transaction.type === "Stock In";
 
 
           return `
@@ -3712,20 +4606,17 @@ function exportTransactions() {
                 )}
               </td>
 
-
               <td>
                 ${escapeHtml(
                   transaction.type || ""
                 )}
               </td>
 
-
               <td>
                 ${escapeHtml(
                   transaction.productName || ""
                 )}
               </td>
-
 
               <td>
                 ${
@@ -3737,20 +4628,17 @@ function exportTransactions() {
                 )}
               </td>
 
-
               <td>
                 ${Number(
                   transaction.previousStock || 0
                 )}
               </td>
 
-
               <td>
                 ${Number(
                   transaction.newStock || 0
                 )}
               </td>
-
 
               <td>
                 ${escapeHtml(
@@ -3866,21 +4754,16 @@ function exportTransactions() {
 
       </head>
 
-
       <body>
 
         <h1>
           Stockly Transactions Report
         </h1>
 
-
         <div class="date">
-
           Generated:
           ${new Date().toLocaleString()}
-
         </div>
-
 
         <table>
 
@@ -3920,7 +4803,6 @@ function exportTransactions() {
 
           </thead>
 
-
           <tbody>
 
             ${rows}
@@ -3929,13 +4811,9 @@ function exportTransactions() {
 
         </table>
 
-
         <div class="footer">
-
           Stockly | MiniInventory
-
         </div>
-
 
       </body>
 
@@ -3945,7 +4823,6 @@ function exportTransactions() {
 
 
     exportWindow.document.close();
-
 
     exportWindow.focus();
 
@@ -3977,9 +4854,9 @@ function exportTransactions() {
 }
 
 
-// =========================================
+// =========================================================
 // SETTINGS
-// =========================================
+// =========================================================
 
 function setupSettings() {
 
@@ -3988,6 +4865,10 @@ function setupSettings() {
       ".settings-tab"
     );
 
+
+  // -----------------------------------------
+  // SETTINGS TABS
+  // -----------------------------------------
 
   tabs.forEach(tab => {
 
@@ -4046,8 +4927,14 @@ function setupSettings() {
   });
 
 
+  // -----------------------------------------
+  // EDIT PROFILE
+  // -----------------------------------------
+
   document
-    .getElementById("editProfileBtn")
+    .getElementById(
+      "editProfileBtn"
+    )
     ?.addEventListener(
       "click",
       () => {
@@ -4066,74 +4953,178 @@ function setupSettings() {
     );
 
 
+  // -----------------------------------------
+  // SAVE PROFILE
+  // -----------------------------------------
+
   document
-    .getElementById("saveProfileBtn")
+    .getElementById(
+      "saveProfileBtn"
+    )
     ?.addEventListener(
       "click",
       saveProfile
     );
 
 
+  // -----------------------------------------
+  // CANCEL PROFILE
+  // -----------------------------------------
+
   document
-    .getElementById("cancelProfileBtn")
+    .getElementById(
+      "cancelProfileBtn"
+    )
     ?.addEventListener(
       "click",
       loadSettings
     );
 
 
+  // -----------------------------------------
+  // CHANGE PASSWORD
+  // -----------------------------------------
+
   document
-    .getElementById("changePasswordBtn")
+    .getElementById(
+      "changePasswordBtn"
+    )
+    ?.addEventListener(
+      "click",
+      changePassword
+    );
+
+
+  // -----------------------------------------
+  // ADD USER
+  // -----------------------------------------
+
+  document
+    .getElementById(
+      "addUserBtn"
+    )
     ?.addEventListener(
       "click",
       () => {
 
         alert(
-          "Password management will be connected when the Stockly account authentication system is added."
+          "Additional user management is not available yet."
         );
 
       }
     );
 
 
-  document
-    .getElementById("addUserBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        alert(
-          "User management will be connected when the Stockly account authentication system is added."
-        );
-
-      }
-    );
-
+  // -----------------------------------------
+  // SAVE SYSTEM SETTINGS
+  // -----------------------------------------
 
   document
-    .getElementById("saveSystemSettingsBtn")
+    .getElementById(
+      "saveSystemSettingsBtn"
+    )
     ?.addEventListener(
       "click",
       saveSystemSettings
     );
 
 
+  // -----------------------------------------
+  // BACKUP DATA
+  // -----------------------------------------
+
   document
-    .getElementById("backupDataBtn")
+    .getElementById(
+      "backupDataBtn"
+    )
     ?.addEventListener(
       "click",
       backupData
     );
 
 
+  // -----------------------------------------
+  // ADD LOGOUT BUTTON
+  // -----------------------------------------
+
+  const settingsSystem =
+    document.getElementById(
+      "settings-system"
+    );
+
+
+  if (
+    settingsSystem &&
+    !document.getElementById(
+      "logoutBtn"
+    )
+  ) {
+
+    const logoutButton =
+      document.createElement(
+        "button"
+      );
+
+
+    logoutButton.id =
+      "logoutBtn";
+
+
+    logoutButton.type =
+      "button";
+
+
+    logoutButton.className =
+      "secondary";
+
+
+    logoutButton.textContent =
+      "Log Out";
+
+
+    logoutButton.style.marginTop =
+      "20px";
+
+
+    logoutButton.addEventListener(
+      "click",
+      () => {
+
+        const confirmed =
+          confirm(
+            "Are you sure you want to log out?"
+          );
+
+
+        if (confirmed) {
+
+          logout();
+
+        }
+
+      }
+    );
+
+
+    settingsSystem.appendChild(
+      logoutButton
+    );
+
+  }
+
+
+  // -----------------------------------------
+  // LOAD SETTINGS
+  // -----------------------------------------
+
   loadSettings();
 
 }
 
 
-// =========================================
+// =========================================================
 // LOAD SETTINGS
-// =========================================
+// =========================================================
 
 function loadSettings() {
 
@@ -4148,7 +5139,7 @@ function loadSettings() {
     localStorage.getItem(
       "stocklyProfileRole"
     ) ||
-    "Administrator";
+    "Inventory Manager";
 
 
   const savedCurrency =
@@ -4169,8 +5160,6 @@ function loadSettings() {
       "stocklyDeleteConfirmation"
     );
 
-
-  // PROFILE INPUTS
 
   const nameInput =
     document.getElementById(
@@ -4200,8 +5189,6 @@ function loadSettings() {
   }
 
 
-  // PROFILE DISPLAY
-
   setText(
     "settingsProfileName",
     savedName
@@ -4213,8 +5200,6 @@ function loadSettings() {
     savedRole
   );
 
-
-  // SIDEBAR
 
   setText(
     "sidebarUserName",
@@ -4229,8 +5214,6 @@ function loadSettings() {
       : savedRole
   );
 
-
-  // AVATARS
 
   const initials =
     getInitials(
@@ -4256,12 +5239,8 @@ function loadSettings() {
   );
 
 
-  // DASHBOARD GREETING
-
   updateDashboardGreeting();
 
-
-  // SYSTEM SETTINGS
 
   const currency =
     document.getElementById(
@@ -4300,8 +5279,7 @@ function loadSettings() {
   if (deleteConfirmation) {
 
     deleteConfirmation.checked =
-      savedDeleteConfirmation !==
-      "false";
+      savedDeleteConfirmation !== "false";
 
   }
 
@@ -4311,7 +5289,9 @@ function loadSettings() {
 
   if (
     document
-      .getElementById("page-products")
+      .getElementById(
+        "page-products"
+      )
       ?.classList
       .contains("active-page")
   ) {
@@ -4326,9 +5306,9 @@ function loadSettings() {
 }
 
 
-// =========================================
+// =========================================================
 // SAVE PROFILE
-// =========================================
+// =========================================================
 
 function saveProfile() {
 
@@ -4345,9 +5325,7 @@ function saveProfile() {
 
 
   if (!nameInput || !roleInput) {
-
     return;
-
   }
 
 
@@ -4397,6 +5375,39 @@ function saveProfile() {
   );
 
 
+  const savedUser =
+    localStorage.getItem(
+      "stocklyUser"
+    );
+
+
+  if (savedUser) {
+
+    try {
+
+      const user =
+        JSON.parse(savedUser);
+
+
+      user.name =
+        name;
+
+
+      user.role =
+        role;
+
+
+      localStorage.setItem(
+        "stocklyUser",
+        JSON.stringify(user)
+      );
+
+
+    } catch {}
+
+  }
+
+
   loadSettings();
 
 
@@ -4407,9 +5418,9 @@ function saveProfile() {
 }
 
 
-// =========================================
-// SAVE SYSTEM SETTINGS
-// =========================================
+// =========================================================
+// SYSTEM SETTINGS
+// =========================================================
 
 function saveSystemSettings() {
 
@@ -4479,9 +5490,9 @@ function saveSystemSettings() {
 }
 
 
-// =========================================
+// =========================================================
 // BACKUP DATA
-// =========================================
+// =========================================================
 
 async function backupData() {
 
@@ -4492,9 +5503,21 @@ async function backupData() {
 
     try {
 
+      const token =
+        localStorage.getItem(
+          "stocklyAuthToken"
+        );
+
+
       const res =
         await fetch(
-          `${API}/api/transactions`
+          `${API}/api/transactions`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
         );
 
 
@@ -4556,7 +5579,7 @@ async function backupData() {
           localStorage.getItem(
             "stocklyProfileRole"
           ) ||
-          "Administrator",
+          "Inventory Manager",
 
         currency:
           localStorage.getItem(
@@ -4637,13 +5660,16 @@ async function backupData() {
     );
 
 
-    setTimeout(() => {
+    setTimeout(
+      () => {
 
-      URL.revokeObjectURL(
-        url
-      );
+        URL.revokeObjectURL(
+          url
+        );
 
-    }, 1000);
+      },
+      1000
+    );
 
 
     alert(
@@ -4668,13 +5694,122 @@ async function backupData() {
 }
 
 
-// =========================================
-// GET INITIALS
-// =========================================
+// =========================================================
+// DARK MODE
+// =========================================================
 
-function getInitials(
-  name
+function setupTheme() {
+
+  const themeToggle =
+    document.getElementById(
+      "themeToggle"
+    );
+
+
+  if (!themeToggle) {
+    return;
+  }
+
+
+  const savedTheme =
+    localStorage.getItem(
+      "stocklyTheme"
+    ) ||
+    "light";
+
+
+  // APPLY SAVED THEME
+
+  if (savedTheme === "dark") {
+
+    document.body.classList.add(
+      "dark-mode"
+    );
+
+  } else {
+
+    document.body.classList.remove(
+      "dark-mode"
+    );
+
+  }
+
+
+  updateThemeButton(
+    savedTheme
+  );
+
+
+  // TOGGLE THEME
+
+  themeToggle.addEventListener(
+    "click",
+    () => {
+
+      const isDark =
+        document.body.classList.toggle(
+          "dark-mode"
+        );
+
+
+      const newTheme =
+        isDark
+          ? "dark"
+          : "light";
+
+
+      localStorage.setItem(
+        "stocklyTheme",
+        newTheme
+      );
+
+
+      updateThemeButton(
+        newTheme
+      );
+
+    }
+  );
+
+}
+
+
+function updateThemeButton(
+  theme
 ) {
+
+  const button =
+    document.getElementById(
+      "themeToggle"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.textContent =
+    theme === "dark"
+      ? "☀"
+      : "☼";
+
+
+  button.setAttribute(
+    "aria-label",
+    theme === "dark"
+      ? "Switch to light mode"
+      : "Switch to dark mode"
+  );
+
+}
+
+
+// =========================================================
+// GET INITIALS
+// =========================================================
+
+function getInitials(name) {
 
   const parts =
     String(name)
@@ -4710,16 +5845,16 @@ function getInitials(
 }
 
 
-// =========================================
+// =========================================================
 // TRANSACTION DATE
-// =========================================
+// =========================================================
 
-function formatTransactionDate(
-  value
-) {
+function formatTransactionDate(value) {
 
   const date =
-    getTransactionDate(value);
+    getTransactionDate(
+      value
+    );
 
 
   if (!date) {
@@ -4743,9 +5878,9 @@ function formatTransactionDate(
 }
 
 
-// =========================================
+// =========================================================
 // CURRENCY
-// =========================================
+// =========================================================
 
 function getCurrency() {
 
@@ -4759,12 +5894,12 @@ function getCurrency() {
 }
 
 
-function formatCurrency(
-  value
-) {
+function formatCurrency(value) {
 
   const amount =
-    Number(value || 0);
+    Number(
+      value || 0
+    );
 
 
   const currency =
@@ -4801,9 +5936,9 @@ function formatCurrency(
 }
 
 
-// =========================================
+// =========================================================
 // AI ASSISTANT
-// =========================================
+// =========================================================
 
 function setupAI() {
 
@@ -4917,6 +6052,12 @@ function setupAI() {
 
       try {
 
+        const token =
+          localStorage.getItem(
+            "stocklyAuthToken"
+          );
+
+
         const res =
           await fetch(
             `${API}/api/ai/chat`,
@@ -4926,7 +6067,10 @@ function setupAI() {
 
               headers: {
                 "Content-Type":
-                  "application/json"
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`
               },
 
               body:
@@ -4945,10 +6089,7 @@ function setupAI() {
         loading.remove();
 
 
-        if (
-          !res.ok ||
-          !data.success
-        ) {
+        if (!res.ok || !data.success) {
 
           throw new Error(
             data.message ||
@@ -5021,9 +6162,9 @@ function setupAI() {
 }
 
 
-// =========================================
+// =========================================================
 // HELPERS
-// =========================================
+// =========================================================
 
 function setText(
   id,
@@ -5046,9 +6187,9 @@ function setText(
 }
 
 
-// =========================================
-// PRODUCT ERROR HELPER
-// =========================================
+// =========================================================
+// PRODUCT ERROR
+// =========================================================
 
 function showProductLoadingError() {
 
@@ -5068,7 +6209,7 @@ function showProductLoadingError() {
     <tr>
 
       <td
-        colspan="7"
+        colspan="6"
         class="empty-table"
       >
         Unable to connect to the Stockly server.
@@ -5082,19 +6223,16 @@ function showProductLoadingError() {
 }
 
 
-// =========================================
+// =========================================================
 // ESCAPE HTML
-// =========================================
+// =========================================================
 
-function escapeHtml(
-  value
-) {
+function escapeHtml(value) {
 
   return String(
     value ?? ""
   ).replace(
     /[&<>"']/g,
-
     c => ({
 
       "&": "&amp;",
@@ -5108,7 +6246,712 @@ function escapeHtml(
       "'": "&#039;"
 
     }[c])
-
   );
+
+}// =========================================================
+// MOBILE SIDEBAR
+// =========================================================
+
+function setupSidebar() {
+
+  const sidebar =
+    document.getElementById("sidebar");
+
+  const menuButton =
+    document.getElementById("mobileMenuButton");
+
+  const closeButton =
+    document.getElementById("sidebarClose");
+
+  const overlay =
+    document.getElementById("sidebarOverlay");
+
+  if (
+    !sidebar ||
+    !menuButton ||
+    !closeButton ||
+    !overlay
+  ) {
+    return;
+  }
+
+
+  // OPEN SIDEBAR
+  menuButton.addEventListener("click", () => {
+
+    sidebar.classList.add("open");
+
+    overlay.classList.add("open");
+
+    document.body.classList.add("sidebar-open");
+
+  });
+
+
+  // CLOSE SIDEBAR
+  closeButton.addEventListener("click", () => {
+
+    sidebar.classList.remove("open");
+
+    overlay.classList.remove("open");
+
+    document.body.classList.remove("sidebar-open");
+
+  });
+
+
+  // CLOSE WHEN OVERLAY IS CLICKED
+  overlay.addEventListener("click", () => {
+
+    sidebar.classList.remove("open");
+
+    overlay.classList.remove("open");
+
+    document.body.classList.remove("sidebar-open");
+
+  });
+
+
+  // CLOSE AFTER CLICKING A NAVIGATION ITEM
+  document.querySelectorAll(".nav-item").forEach(item => {
+
+    item.addEventListener("click", () => {
+
+      sidebar.classList.remove("open");
+
+      overlay.classList.remove("open");
+
+      document.body.classList.remove("sidebar-open");
+
+    });
+
+  });
+
+}
+// =========================================================
+// NOTIFICATIONS
+// =========================================================
+
+function setupNotifications() {
+
+  const button =
+    document.getElementById("notificationButton");
+
+  const panel =
+    document.getElementById("notificationPanel");
+
+  const badge =
+    document.getElementById("notificationBadge");
+
+  const list =
+    document.getElementById("notificationList");
+
+  const countText =
+    document.getElementById("notificationCount");
+
+
+  if (
+    !button ||
+    !panel ||
+    !badge ||
+    !list ||
+    !countText
+  ) {
+    return;
+  }
+
+
+  // OPEN / CLOSE NOTIFICATIONS
+
+  button.addEventListener("click", (event) => {
+
+    event.stopPropagation();
+
+    panel.classList.toggle("open");
+
+  });
+
+
+  // CLOSE WHEN CLICKING OUTSIDE
+
+  document.addEventListener("click", (event) => {
+
+    if (
+      !panel.contains(event.target) &&
+      !button.contains(event.target)
+    ) {
+
+      panel.classList.remove("open");
+
+    }
+
+  });
+
+
+  // INITIAL LOAD
+
+  updateNotifications();
+
+}
+
+// =========================================================
+// UPDATE NOTIFICATIONS
+// =========================================================
+
+function updateNotifications() {
+
+  const badge =
+    document.getElementById("notificationBadge");
+
+  const list =
+    document.getElementById("notificationList");
+
+  const countText =
+    document.getElementById("notificationCount");
+
+  const clearButton =
+    document.getElementById("clearNotifications");
+
+
+  if (
+    !badge ||
+    !list ||
+    !countText
+  ) {
+    return;
+  }
+
+
+  const notifications = [];
+
+
+  // =========================================
+  // CHECK IF NOTIFICATIONS WERE CLEARED
+  // =========================================
+
+  const notificationsCleared =
+    localStorage.getItem("stocklyNotificationsCleared") === "true";
+
+
+  // =========================================
+  // LOW / OUT OF STOCK
+  // =========================================
+
+  if (!notificationsCleared) {
+
+    products.forEach(product => {
+
+      const quantity =
+        Number(product.quantity) || 0;
+
+      const minimum =
+        Number(product.minimum) || 0;
+
+
+      if (quantity === 0) {
+
+        notifications.push({
+
+          type: "out",
+
+          icon: "🔴",
+
+          title: "Out of Stock",
+
+          message:
+            `${product.name} is currently out of stock.`
+
+        });
+
+      }
+
+
+      else if (quantity <= minimum) {
+
+        notifications.push({
+
+          type: "low",
+
+          icon: "🟡",
+
+          title: "Low Stock",
+
+          message:
+            `${product.name} has only ${quantity} unit${quantity === 1 ? "" : "s"} remaining.`
+
+        });
+
+      }
+
+    });
+
+  }
+
+
+  // =========================================
+  // NOTIFICATION COUNT
+  // =========================================
+
+  const total =
+    notifications.length;
+
+
+  if (total > 0) {
+
+    badge.textContent =
+      total > 99 ? "99+" : total;
+
+    countText.textContent =
+      `${total} notification${total === 1 ? "" : "s"}`;
+
+  }
+
+  else {
+
+    badge.textContent = "";
+
+    countText.textContent =
+      "No new notifications";
+
+  }
+
+
+  // =========================================
+  // CLEAR BUTTON
+  // =========================================
+
+  if (clearButton) {
+
+    clearButton.style.display =
+      total > 0 ? "block" : "none";
+
+
+    clearButton.onclick = () => {
+
+      localStorage.setItem(
+        "stocklyNotificationsCleared",
+        "true"
+      );
+
+      updateNotifications();
+
+    };
+
+  }
+
+
+  // =========================================
+  // EMPTY STATE
+  // =========================================
+
+  if (total === 0) {
+
+    list.innerHTML = `
+      <div class="notification-empty">
+        ✓ No new notifications.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  // =========================================
+  // RENDER NOTIFICATIONS
+  // =========================================
+
+  list.innerHTML =
+    notifications
+      .map(notification => {
+
+        return `
+          <div class="notification-item">
+
+            <div class="notification-icon">
+              ${notification.icon}
+            </div>
+
+            <div class="notification-content">
+
+              <b>
+                ${escapeHtml(notification.title)}
+              </b>
+
+              <p>
+                ${escapeHtml(notification.message)}
+              </p>
+
+            </div>
+
+          </div>
+        `;
+
+      })
+      .join("");
+
+}
+
+
+// =========================================================
+// CLEAR NOTIFICATIONS WHEN NEW DATA IS AVAILABLE
+// =========================================================
+
+function resetNotifications() {
+
+  localStorage.removeItem(
+    "stocklyNotificationsCleared"
+  );
+
+  updateNotifications();
+
+}
+// =========================================================
+// CHANGE PASSWORD
+// =========================================================
+
+async function changePassword() {
+
+  const currentPassword =
+    prompt("Enter your current password:");
+
+  if (currentPassword === null) {
+    return;
+  }
+
+
+  const newPassword =
+    prompt("Enter your new password:");
+
+  if (newPassword === null) {
+    return;
+  }
+
+
+  const confirmPassword =
+    prompt("Confirm your new password:");
+
+  if (confirmPassword === null) {
+    return;
+  }
+
+
+  // -----------------------------------------
+  // VALIDATION
+  // -----------------------------------------
+
+  if (!currentPassword.trim()) {
+
+    alert(
+      "Please enter your current password."
+    );
+
+    return;
+  }
+
+
+  if (newPassword.length < 6) {
+
+    alert(
+      "New password must be at least 6 characters."
+    );
+
+    return;
+  }
+
+
+  if (newPassword !== confirmPassword) {
+
+    alert(
+      "New passwords do not match."
+    );
+
+    return;
+  }
+
+
+  if (currentPassword === newPassword) {
+
+    alert(
+      "Your new password must be different from your current password."
+    );
+
+    return;
+  }
+
+
+  const token =
+    localStorage.getItem(
+      "stocklyAuthToken"
+    );
+
+
+  if (!token) {
+
+    alert(
+      "Your session has expired. Please log in again."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    const res =
+      await fetch(
+        `${API}/api/auth/change-password`,
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`
+          },
+
+          body:
+            JSON.stringify({
+              currentPassword,
+              newPassword
+            })
+
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    if (!res.ok || !data.success) {
+
+      throw new Error(
+        data.message ||
+        "Unable to change password."
+      );
+
+    }
+
+
+    alert(
+      "Password changed successfully!"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Change password error:",
+      error
+    );
+
+
+    alert(
+      error.message ||
+      "Unable to change password."
+    );
+
+  }
+
+}
+
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
+async function logout() {
+
+  const token =
+    localStorage.getItem(
+      "stocklyAuthToken"
+    );
+
+
+  try {
+
+    if (token) {
+
+      await fetch(
+        `${API}/api/auth/logout`,
+        {
+
+          method: "POST",
+
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+
+        }
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Logout error:",
+      error
+    );
+
+  }
+
+
+  // -----------------------------------------
+  // CLEAR LOGIN DATA
+  // -----------------------------------------
+
+  localStorage.removeItem(
+    "stocklyAuthToken"
+  );
+
+  localStorage.removeItem(
+    "stocklyUser"
+  );
+
+  localStorage.removeItem(
+    "stocklyProfileName"
+  );
+
+
+  // -----------------------------------------
+  // HIDE APP
+  // -----------------------------------------
+
+  const appShell =
+    document.getElementById(
+      "appShell"
+    );
+
+
+  if (appShell) {
+
+    appShell.style.display =
+      "none";
+
+  }
+
+
+  // -----------------------------------------
+  // SHOW LOGIN
+  // -----------------------------------------
+
+  const authScreen =
+    document.getElementById(
+      "authScreen"
+    );
+
+
+  if (authScreen) {
+
+    authScreen.style.display =
+      "flex";
+
+  }
+
+
+  // -----------------------------------------
+  // SHOW LOGIN FORM
+  // -----------------------------------------
+
+  const loginContainer =
+    document.getElementById(
+      "loginContainer"
+    );
+
+
+  const registerContainer =
+    document.getElementById(
+      "registerContainer"
+    );
+
+
+  if (loginContainer) {
+
+    loginContainer.classList.add(
+      "active"
+    );
+
+  }
+
+
+  if (registerContainer) {
+
+    registerContainer.classList.remove(
+      "active"
+    );
+
+  }
+
+
+  // -----------------------------------------
+  // RESET LOGIN FORM
+  // -----------------------------------------
+
+  const loginForm =
+    document.getElementById(
+      "loginForm"
+    );
+
+
+  if (loginForm) {
+
+    loginForm.reset();
+
+  }
+
+
+  // -----------------------------------------
+  // RESET REGISTER FORM
+  // -----------------------------------------
+
+  const registerForm =
+    document.getElementById(
+      "registerForm"
+    );
+
+
+  if (registerForm) {
+
+    registerForm.reset();
+
+  }
+
+
+  // -----------------------------------------
+  // CLEAR MESSAGES
+  // -----------------------------------------
+
+  const loginMessage =
+    document.getElementById(
+      "loginMessage"
+    );
+
+
+  const registerMessage =
+    document.getElementById(
+      "registerMessage"
+    );
+
+
+  if (loginMessage) {
+
+    loginMessage.textContent =
+      "";
+
+  }
+
+
+  if (registerMessage) {
+
+    registerMessage.textContent =
+      "";
+
+  }
 
 }

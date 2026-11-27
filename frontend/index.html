@@ -1,5 +1,4 @@
-```html
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -11,7 +10,7 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>MiniInventory</title>
+  <title>Stockly | MiniInventory</title>
 
   <link
     rel="stylesheet"
@@ -39,18 +38,311 @@
 
 <body>
 
-  <div class="app-shell">
+
+  <!-- ========================================= -->
+  <!-- LOGIN / REGISTER -->
+  <!-- ========================================= -->
+
+  <div
+    class="auth-screen"
+    id="authScreen"
+  >
+
+    <div class="auth-card">
+
+      <div class="auth-brand">
+
+        <div class="auth-brand-icon">
+          📦
+        </div>
+
+        <div>
+          <h1>Stockly</h1>
+          <p>MiniInventory</p>
+        </div>
+
+      </div>
 
 
-    <!-- ========================================= -->
+      <!-- LOGIN -->
+
+      <div
+        class="auth-form-container active"
+        id="loginContainer"
+      >
+
+        <div class="auth-heading">
+
+          <h2>Welcome back!</h2>
+
+          <p>
+            Sign in to manage your inventory.
+          </p>
+
+        </div>
+
+
+        <form id="loginForm">
+
+          <label>
+
+            Email
+
+            <input
+              type="email"
+              id="loginEmail"
+              required
+              placeholder="Enter your email"
+              autocomplete="email"
+            >
+
+          </label>
+
+
+          <label>
+
+            Password
+
+            <div class="password-wrap">
+
+              <input
+                type="password"
+                id="loginPassword"
+                required
+                placeholder="Enter your password"
+                autocomplete="current-password"
+              >
+
+              <button
+                type="button"
+                class="password-toggle"
+                data-target="loginPassword"
+                aria-label="Show password"
+              >
+                👁
+              </button>
+
+            </div>
+
+          </label>
+
+
+          <div
+            class="auth-message"
+            id="loginMessage"
+          ></div>
+
+
+          <button
+            type="submit"
+            class="primary auth-submit"
+          >
+            Sign In
+          </button>
+
+        </form>
+
+
+        <p class="auth-switch">
+
+          Don't have an account?
+
+          <button
+            type="button"
+            id="showRegisterBtn"
+          >
+            Create one
+          </button>
+
+        </p>
+
+      </div>
+
+
+      <!-- REGISTER -->
+
+      <div
+        class="auth-form-container"
+        id="registerContainer"
+      >
+
+        <div class="auth-heading">
+
+          <h2>Create an account</h2>
+
+          <p>
+            Set up your Stockly inventory account.
+          </p>
+
+        </div>
+
+
+        <form id="registerForm">
+
+          <label>
+
+            Full Name
+
+            <input
+              type="text"
+              id="registerName"
+              required
+              placeholder="Enter your full name"
+              autocomplete="name"
+            >
+
+          </label>
+
+
+          <label>
+
+            Email
+
+            <input
+              type="email"
+              id="registerEmail"
+              required
+              placeholder="Enter your email"
+              autocomplete="email"
+            >
+
+          </label>
+
+
+          <label>
+
+            Password
+
+            <div class="password-wrap">
+
+              <input
+                type="password"
+                id="registerPassword"
+                required
+                minlength="6"
+                placeholder="At least 6 characters"
+                autocomplete="new-password"
+              >
+
+              <button
+                type="button"
+                class="password-toggle"
+                data-target="registerPassword"
+                aria-label="Show password"
+              >
+                👁
+              </button>
+
+            </div>
+
+          </label>
+
+
+          <label>
+
+            Confirm Password
+
+            <div class="password-wrap">
+
+              <input
+                type="password"
+                id="registerConfirmPassword"
+                required
+                minlength="6"
+                placeholder="Confirm your password"
+                autocomplete="new-password"
+              >
+
+              <button
+                type="button"
+                class="password-toggle"
+                data-target="registerConfirmPassword"
+                aria-label="Show password"
+              >
+                👁
+              </button>
+
+            </div>
+
+          </label>
+
+
+          <div
+            class="auth-message"
+            id="registerMessage"
+          ></div>
+
+
+          <button
+            type="submit"
+            class="primary auth-submit"
+          >
+            Create Account
+          </button>
+
+        </form>
+
+
+        <p class="auth-switch">
+
+          Already have an account?
+
+          <button
+            type="button"
+            id="showLoginBtn"
+          >
+            Sign in
+          </button>
+
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- ========================================= -->
+  <!-- MAIN APPLICATION -->
+  <!-- ========================================= -->
+
+  <div
+    class="app-shell"
+    id="appShell"
+  >
+
+
     <!-- SIDEBAR -->
-    <!-- ========================================= -->
 
-    <aside class="sidebar">
+    <aside
+      class="sidebar"
+      id="sidebar"
+    >
+
+      <!-- MOBILE CLOSE BUTTON -->
+
+      <button
+        type="button"
+        class="sidebar-close"
+        id="sidebarClose"
+        aria-label="Close navigation"
+      >
+        ×
+      </button>
+
 
       <div class="brand">
-        <span class="brand-icon">📈</span>
-        <span>Mini Inventory</span>
+
+        <span class="brand-icon">
+          📦
+        </span>
+
+        <span>
+          Mini Inventory
+        </span>
+
       </div>
 
 
@@ -118,8 +410,6 @@
       </nav>
 
 
-      <!-- SIDEBAR USER -->
-
       <div class="sidebar-user">
 
         <div
@@ -131,12 +421,12 @@
 
         <div>
 
-         <b id="sidebarUserName">
-  User
-</b>
+          <b id="sidebarUserName">
+            User
+          </b>
 
           <small id="sidebarUserRole">
-            Admin
+            Inventory Manager
           </small>
 
         </div>
@@ -146,68 +436,136 @@
     </aside>
 
 
-    <!-- ========================================= -->
+    <!-- MOBILE SIDEBAR OVERLAY -->
+
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+    ></div>
+
+
+
     <!-- MAIN -->
-    <!-- ========================================= -->
 
     <main class="main">
 
+ <!-- TOPBAR -->
 
-      <!-- ========================================= -->
-      <!-- TOPBAR -->
-      <!-- ========================================= -->
+<header class="topbar">
 
-      <header class="topbar">
+  <!-- MOBILE MENU BUTTON -->
 
-        <div class="search-wrap">
-
-          ⌕
-
-          <input
-            id="globalSearch"
-            type="search"
-            placeholder="Search products or category..."
-            autocomplete="off"
-          >
-
-        </div>
+  <button
+    type="button"
+    class="mobile-menu-button"
+    id="mobileMenuButton"
+    aria-label="Open navigation"
+  >
+    ☰
+  </button>
 
 
-        <div class="top-actions">
+  <!-- TOPBAR ACTIONS -->
 
-          <button
-            type="button"
-            title="Notifications"
-            aria-label="Notifications"
-          >
-            ♧
-          </button>
+  <div class="top-actions">
 
 
-          <button
-            type="button"
-            title="Theme"
-            aria-label="Theme"
-          >
-            ☼
-          </button>
+    <!-- NOTIFICATIONS -->
+
+    <div class="notification-wrap">
+
+      <button
+        type="button"
+        class="notification-button"
+        id="notificationButton"
+        title="Notifications"
+        aria-label="Notifications"
+      >
+        
+
+        <span
+          class="notification-badge"
+          id="notificationBadge"
+        >
+          0
+        </span>
+
+      </button>
 
 
-          <div
-            class="avatar small"
-            id="topbarAvatar"
-          >
-            RB
+      <!-- NOTIFICATION PANEL -->
+
+      <div
+        class="notification-panel"
+        id="notificationPanel"
+      >
+
+        <div class="notification-header">
+
+  <div>
+    <b>Notifications</b>
+
+    <small id="notificationCount">
+      No new notifications
+    </small>
+  </div>
+
+
+  <button
+    type="button"
+    class="notification-clear"
+   id="clearNotifications">
+  Clear Notifications
+</button>
+  
+
+</div>
+
+
+        <div
+          class="notification-list"
+          id="notificationList"
+        >
+
+          <div class="notification-empty">
+            No new notifications.
           </div>
 
         </div>
 
-      </header>
+      </div>
+
+    </div>
 
 
-      <!-- ========================================= -->
+    <!-- THEME -->
+
+    <button
+      type="button"
+      id="themeToggle"
+      title="Theme"
+      aria-label="Theme"
+    >
+      ☼
+    </button>
+
+
+    <!-- AVATAR -->
+
+    <div
+      class="avatar small"
+      id="topbarAvatar"
+    >
+      RB
+    </div>
+
+  </div>
+
+</header>
+
+
+
       <!-- DASHBOARD -->
-      <!-- ========================================= -->
 
       <section
         id="page-dashboard"
@@ -219,6 +577,7 @@
           <div>
 
             <h1 id="dashboardGreeting"></h1>
+
             <p>
               Here's what's happening with your inventory today.
             </p>
@@ -228,25 +587,21 @@
 
           <div class="date-chip">
 
-  <span id="currentDate"></span>
+            <span id="currentDate"></span>
 
-  <span id="currentTime"></span>
+            <span id="currentTime"></span>
 
-</div>
+          </div>
 
         </div>
 
-
-        <!-- DASHBOARD STAT CARDS -->
 
         <div class="cards">
 
 
           <div class="stat-card">
 
-            <span>
-              Total Products
-            </span>
+            <span>Total Products</span>
 
             <strong id="totalProducts">
               0
@@ -261,9 +616,7 @@
 
           <div class="stat-card mint">
 
-            <span>
-              Low Stock
-            </span>
+            <span>Low Stock</span>
 
             <strong id="lowStock">
               0
@@ -278,9 +631,7 @@
 
           <div class="stat-card pink">
 
-            <span>
-              Out of Stock
-            </span>
+            <span>Out of Stock</span>
 
             <strong id="outStock">
               0
@@ -295,9 +646,7 @@
 
           <div class="stat-card purple">
 
-            <span>
-              Inventory Value
-            </span>
+            <span>Inventory Value</span>
 
             <strong id="inventoryValue">
               ₱0
@@ -313,12 +662,8 @@
         </div>
 
 
-        <!-- DASHBOARD TWO COLUMN -->
-
         <div class="grid-two">
 
-
-          <!-- STOCK OVERVIEW -->
 
           <div class="panel">
 
@@ -414,10 +759,7 @@
 
           </div>
 
-
-          <!-- RECENT TRANSACTIONS -->
-
-          <div class="panel">
+         <div class="panel">
 
             <div class="panel-head">
 
@@ -454,10 +796,7 @@
       </section>
 
 
-      <!-- ========================================= -->
-      <!-- PRODUCTS -->
-      <!-- ========================================= -->
-
+ <!-- PRODUCTS -->
       <section
         id="page-products"
         class="page"
@@ -488,8 +827,6 @@
 
         </div>
 
-
-        <!-- PRODUCT FILTERS -->
 
         <div class="filters">
 
@@ -533,8 +870,6 @@
         </div>
 
 
-        <!-- PRODUCT TABLE -->
-
         <div class="panel table-panel">
 
           <table>
@@ -543,38 +878,24 @@
 
               <tr>
 
+                <th>Product Name</th>
 
-                <th>
-                  Product Name
-                </th>
+                <th>Category</th>
 
-                <th>
-                  Category
-                </th>
+                <th>Price</th>
 
-                <th>
-                  Price
-                </th>
+                <th>Stock</th>
 
-                <th>
-                  Stock
-                </th>
+                <th>Status</th>
 
-                <th>
-                  Status
-                </th>
-
-                <th>
-                  Actions
-                </th>
+                <th>Actions</th>
 
               </tr>
 
             </thead>
 
 
-            <tbody id="productsBody">
-            </tbody>
+            <tbody id="productsBody"></tbody>
 
           </table>
 
@@ -583,9 +904,8 @@
       </section>
 
 
-      <!-- ========================================= -->
+
       <!-- ADD PRODUCT -->
-      <!-- ========================================= -->
 
       <section
         id="page-add"
@@ -614,7 +934,6 @@
           <form id="productForm">
 
             <div class="form-grid">
-
 
               <label>
 
@@ -693,7 +1012,6 @@
 
               </label>
 
-
             </div>
 
 
@@ -717,7 +1035,6 @@
 
             </div>
 
-
           </form>
 
         </div>
@@ -725,9 +1042,8 @@
       </section>
 
 
-      <!-- ========================================= -->
+
       <!-- TRANSACTIONS -->
-      <!-- ========================================= -->
 
       <section
         id="page-transactions"
@@ -759,8 +1075,6 @@
 
         </div>
 
-
-        <!-- TRANSACTION FILTERS -->
 
         <div class="filters">
 
@@ -803,41 +1117,26 @@
 
               <tr>
 
-                <th>
-                  Date & Time
-                </th>
+                <th>Date & Time</th>
 
-                <th>
-                  Type
-                </th>
+                <th>Type</th>
 
-                <th>
-                  Product
-                </th>
+                <th>Product</th>
 
-                <th>
-                  Quantity
-                </th>
+                <th>Quantity</th>
 
-                <th>
-                  Previous Stock
-                </th>
+                <th>Previous Stock</th>
 
-                <th>
-                  New Stock
-                </th>
+                <th>New Stock</th>
 
-                <th>
-                  Remarks
-                </th>
+                <th>Remarks</th>
 
               </tr>
 
             </thead>
 
 
-            <tbody id="transactionsBody">
-            </tbody>
+            <tbody id="transactionsBody"></tbody>
 
           </table>
 
@@ -846,9 +1145,8 @@
       </section>
 
 
-      <!-- ========================================= -->
+
       <!-- CATEGORIES -->
-      <!-- ========================================= -->
 
       <section
         id="page-categories"
@@ -886,11 +1184,8 @@
       </section>
 
 
-      
 
-      <!-- ========================================= -->
       <!-- REPORTS -->
-      <!-- ========================================= -->
 
       <section
         id="page-reports"
@@ -923,16 +1218,12 @@
         </div>
 
 
-        <!-- REPORT SUMMARY -->
-
         <div class="cards">
 
 
           <div class="stat-card">
 
-            <span>
-              Total Products
-            </span>
+            <span>Total Products</span>
 
             <strong id="reportProducts">
               0
@@ -947,16 +1238,14 @@
 
           <div class="stat-card mint">
 
-            <span>
-              Stock In
-            </span>
+            <span>Stock In</span>
 
             <strong id="reportStockIn">
               0
             </strong>
 
             <small>
-              Total units added
+              Total products added
             </small>
 
           </div>
@@ -964,16 +1253,14 @@
 
           <div class="stat-card pink">
 
-            <span>
-              Stock Out
-            </span>
+            <span>Stock Out</span>
 
             <strong id="reportStockOut">
               0
             </strong>
 
             <small>
-              Total units removed
+              Total products sold
             </small>
 
           </div>
@@ -981,9 +1268,7 @@
 
           <div class="stat-card purple">
 
-            <span>
-              Inventory Value
-            </span>
+            <span>Inventory Value</span>
 
             <strong id="reportInventory">
               ₱0
@@ -995,16 +1280,11 @@
 
           </div>
 
-
         </div>
 
 
-        <!-- REPORT CHARTS -->
-
         <div class="grid-two">
 
-
-          <!-- STOCK MOVEMENT -->
 
           <div class="panel chart">
 
@@ -1025,8 +1305,6 @@
 
           </div>
 
-
-          <!-- TOP CATEGORIES -->
 
           <div class="panel chart">
 
@@ -1055,8 +1333,6 @@
         </div>
 
 
-        <!-- CATEGORY SUMMARY -->
-
         <div class="panel report-category-panel">
 
           <div class="panel-head">
@@ -1081,13 +1357,11 @@
 
         </div>
 
-
       </section>
 
 
-      <!-- ========================================= -->
+
       <!-- SETTINGS -->
-      <!-- ========================================= -->
 
       <section
         id="page-settings"
@@ -1113,8 +1387,6 @@
 
         <div class="panel settings-card">
 
-
-          <!-- SETTINGS MENU -->
 
           <div class="settings-menu">
 
@@ -1156,9 +1428,8 @@
           </div>
 
 
-          <!-- ========================================= -->
+
           <!-- PROFILE -->
-          <!-- ========================================= -->
 
           <div
             class="settings-content settings-section active"
@@ -1186,12 +1457,12 @@
 
               <div class="profile-info">
 
-               <b id="settingsProfileName">
-  User
-</b>
+                <b id="settingsProfileName">
+                  User
+                </b>
 
                 <small id="settingsProfileRole">
-                  Administrator
+                  Inventory Manager
                 </small>
 
               </div>
@@ -1218,7 +1489,6 @@
 
             <div class="form-grid">
 
-
               <label>
 
                 Full Name
@@ -1241,12 +1511,11 @@
                 <input
                   type="text"
                   id="settingsRole"
-                  value="Administrator"
+                  value="Inventory Manager"
                   placeholder="Enter your role"
                 >
 
               </label>
-
 
             </div>
 
@@ -1309,9 +1578,8 @@
           </div>
 
 
-          <!-- ========================================= -->
+
           <!-- USERS -->
-          <!-- ========================================= -->
 
           <div
             class="settings-content settings-section"
@@ -1355,9 +1623,8 @@
           </div>
 
 
-          <!-- ========================================= -->
+
           <!-- SYSTEM -->
-          <!-- ========================================= -->
 
           <div
             class="settings-content settings-section"
@@ -1484,9 +1751,8 @@
           </div>
 
 
-          <!-- ========================================= -->
+
           <!-- BACKUP -->
-          <!-- ========================================= -->
 
           <div
             class="settings-content settings-section"
@@ -1542,15 +1808,14 @@
 
           </div>
 
-
         </div>
 
       </section>
 
-
     </main>
 
   </div>
+
 
 
   <!-- ========================================= -->
@@ -1564,6 +1829,7 @@
   >
     🤖
   </div>
+
 
 
   <!-- ========================================= -->
@@ -1641,6 +1907,7 @@
   </div>
 
 
+
   <!-- ========================================= -->
   <!-- EDIT PRODUCT MODAL -->
   <!-- ========================================= -->
@@ -1682,9 +1949,7 @@
 
       <form id="editProductForm">
 
-
         <div class="form-grid">
-
 
           <label>
 
@@ -1768,12 +2033,10 @@
 
           </label>
 
-
         </div>
 
 
         <div class="form-actions">
-
 
           <button
             type="button"
@@ -1791,15 +2054,14 @@
             Save Changes
           </button>
 
-
         </div>
-
 
       </form>
 
     </div>
 
   </div>
+
 
 
   <!-- ========================================= -->
@@ -1811,4 +2073,3 @@
 </body>
 
 </html>
-```
