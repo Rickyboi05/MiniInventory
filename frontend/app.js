@@ -1140,16 +1140,24 @@ async function loadProducts() {
   try {
 
     const res =
-      await fetchWithTimeout(
+      await fetch(
         `${API}/api/products`,
         {
+          method: "GET",
           headers: {
-            Authorization:
-              `Bearer ${token}`
+            "Authorization":
+              `Bearer ${token}`,
+            "Content-Type":
+              "application/json"
           }
-        },
-        30000
+        }
       );
+
+
+    console.log(
+      "Products response status:",
+      res.status
+    );
 
 
     if (!res.ok) {
@@ -1163,6 +1171,12 @@ async function loadProducts() {
 
     const data =
       await res.json();
+
+
+    console.log(
+      "Products API response:",
+      data
+    );
 
 
     if (!data.success) {
@@ -1221,158 +1235,6 @@ async function loadProducts() {
   }
 
 }
-
-
-// =========================================================
-// RENDER PRODUCTS
-// =========================================================
-
-function renderProducts(list) {
-
-  const body =
-    document.getElementById(
-      "productsBody"
-    );
-
-
-  if (!body) {
-    return;
-  }
-
-
-  if (!list.length) {
-
-    body.innerHTML = `
-      <tr>
-        <td
-          colspan="6"
-          class="empty-table"
-        >
-          No products found. Add your first product.
-        </td>
-      </tr>
-    `;
-
-    return;
-
-  }
-
-
-  body.innerHTML =
-    list
-      .map(product => {
-
-        const [
-          status,
-          cls
-        ] = statusOf(product);
-
-
-        return `
-          <tr>
-
-            <td>
-              <b>
-                ${escapeHtml(
-                  product.name
-                )}
-              </b>
-            </td>
-
-            <td>
-              ${escapeHtml(
-                product.category
-              )}
-            </td>
-
-            <td>
-              ${formatCurrency(
-                product.price
-              )}
-            </td>
-
-            <td>
-              ${Number(
-                product.quantity || 0
-              )}
-            </td>
-
-            <td>
-              <span class="tag ${cls}">
-                ${status}
-              </span>
-            </td>
-
-            <td>
-              <div class="product-actions">
-
-                <button
-                  type="button"
-                  class="edit-product-btn"
-                  data-id="${escapeHtml(
-                    product.id
-                  )}"
-                >
-                  Edit
-                </button>
-
-                <button
-                  type="button"
-                  class="delete-product-btn"
-                  data-id="${escapeHtml(
-                    product.id
-                  )}"
-                >
-                  Delete
-                </button>
-
-              </div>
-            </td>
-
-          </tr>
-        `;
-
-      })
-      .join("");
-
-
-  document
-    .querySelectorAll(".edit-product-btn")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          openEditProduct(
-            button.dataset.id
-          );
-
-        }
-      );
-
-    });
-
-
-  document
-    .querySelectorAll(".delete-product-btn")
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          deleteProduct(
-            button.dataset.id
-          );
-
-        }
-      );
-
-    });
-
-}
-
 
 // =========================================================
 // DASHBOARD
