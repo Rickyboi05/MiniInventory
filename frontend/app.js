@@ -6817,3 +6817,171 @@ async function logout() {
   }
 
 }
+// =========================================================
+// RENDER PRODUCTS
+// =========================================================
+
+function renderProducts(list) {
+
+  const body =
+    document.getElementById(
+      "productsBody"
+    );
+
+
+  if (!body) {
+    return;
+  }
+
+
+  if (
+    !Array.isArray(list) ||
+    list.length === 0
+  ) {
+
+    body.innerHTML = `
+
+      <tr>
+
+        <td
+          colspan="6"
+          class="empty-table"
+        >
+          No products found.
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+  }
+
+
+  body.innerHTML =
+    list
+      .map(product => {
+
+        const quantity =
+          Number(
+            product.quantity || 0
+          );
+
+
+        const minimum =
+          Number(
+            product.minimum || 0
+          );
+
+
+        let status =
+          "In Stock";
+
+
+        let statusClass =
+          "status-in";
+
+
+        if (quantity === 0) {
+
+          status =
+            "Out of Stock";
+
+          statusClass =
+            "status-out";
+
+        } else if (
+          quantity <= minimum
+        ) {
+
+          status =
+            "Low Stock";
+
+          statusClass =
+            "status-low";
+
+        }
+
+
+        return `
+
+          <tr>
+
+            <td>
+              ${escapeHtml(
+                product.name || ""
+              )}
+            </td>
+
+
+            <td>
+              ${escapeHtml(
+                product.category || ""
+              )}
+            </td>
+
+
+            <td>
+              ₱${Number(
+                product.price || 0
+              ).toLocaleString(
+                "en-PH",
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                }
+              )}
+            </td>
+
+
+            <td>
+              ${quantity}
+            </td>
+
+
+            <td>
+
+              <span
+                class="status-badge ${statusClass}"
+              >
+                ${status}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div class="action-buttons">
+
+                <button
+                  type="button"
+                  class="action-btn edit-btn"
+                  onclick="openEditProduct('${product.id}')"
+                  title="Edit Product"
+                >
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+
+
+                <button
+                  type="button"
+                  class="action-btn delete-btn"
+                  onclick="deleteProduct('${product.id}')"
+                  title="Delete Product"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        `;
+
+      })
+      .join("");
+
+}
